@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Criar conta{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<section class="min-h-[100dvh] flex items-center justify-center relative overflow-hidden px-6">
+
+  <!-- Glow decorativo -->
+  <div class="glow-gold opacity-30" style="top: 10%; left: 50%; transform: translateX(-50%);"></div>
+
+  <div class="relative w-full max-w-md">
+
+    <!-- Logo -->
+    <div class="text-center mb-10">
+      <a href="{% url 'landing' %}" class="font-serif text-3xl text-gold-400 hover:text-gold-300 transition-colors">Auri</a>
+      <p class="mt-2 text-sm text-white/25">Crie sua conta</p>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm
+        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Formulário -->
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <div>
+        <label for="id_nickname" class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">Nickname</label>
+        <input type="text" name="nickname" id="id_nickname" required autofocus maxlength="50"
+          value="{{ form.nickname.value|default:'' }}"
+          placeholder="seu_nickname"
+          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+        {% if form.nickname.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.nickname.errors.0 }}</p>
+        {% endif %}
+        <p class="mt-1 text-[11px] text-white/15">Letras, números, underscore e hífen</p>
+      </div>
+
+      <div>
+        <label for="id_email" class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">E-mail</label>
+        <input type="email" name="email" id="id_email" required
+          value="{{ form.email.value|default:'' }}"
+          placeholder="seu@email.com"
+          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+        {% if form.email.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.email.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <button type="submit"
+        class="w-full py-3.5 rounded-xl bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-300 shadow-lg shadow-gold-500/10">
+        Criar conta
+      </button>
+    </form>
+
+    <p class="text-center mt-4 text-xs text-white/20">
+      Você receberá uma senha temporária por e-mail.
+    </p>
+
+    <!-- Link login -->
+    <p class="text-center mt-8 text-sm text-white/25">
+      Já tem uma conta?
+      <a href="{% url 'accounts:login' %}" class="text-gold-400/70 hover:text-gold-400 transition-colors underline underline-offset-4 decoration-gold-400/20">
+        Entrar
+      </a>
+    </p>
+
+  </div>
+</section>
+{% endblock %}
