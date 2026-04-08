@@ -26,7 +26,7 @@ urlpatterns = [
     # path('', include('apps.cards.urls')),
     # path('', include('apps.categories.urls')),
     # path('', include('apps.reports.urls')),
-    # path('', include('apps.transactions.urls')),
+    path('', include('apps.transactions.urls')),
 
     # API URLs
     path('api/v1/accounts/', include('apps.accounts.api_urls')),
