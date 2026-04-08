@@ -188,3 +188,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomSocialAccountAdapter'
+
+# dj-rest-auth — usa JWT, não o Token padrão do DRF
+REST_AUTH = {
+    'TOKEN_MODEL': None,
+}
