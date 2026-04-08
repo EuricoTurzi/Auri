@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{% if action == 'edit' %}Editar Categoria{% else %}Nova Categoria{% endif %}{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-dark-950 flex items-start justify-center px-6 py-10">
+  <div class="w-full max-w-lg">
+
+    <!-- Cabeçalho -->
+    <div class="mb-8">
+      <a href="{% url 'categories:list' %}" class="text-xs text-white/30 hover:text-white/60 transition-colors">← Categorias</a>
+      <h1 class="font-serif text-2xl text-gold-400 mt-3">
+        {% if action == 'edit' %}Editar Categoria{% else %}Nova Categoria{% endif %}
+      </h1>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm
+        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Formulário -->
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <!-- Nome -->
+      <div>
+        <label class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">Nome *</label>
+        <input type="text" name="name" required autofocus
+          value="{{ form_data.name|default:category.name|default:'' }}"
+          placeholder="ex: Alimentação"
+          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+      </div>
+
+      <!-- Descrição -->
+      <div>
+        <label class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">Descrição</label>
+        <textarea name="description" rows="2"
+          placeholder="Descrição opcional"
+          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all resize-none">{{ form_data.description|default:category.description|default:'' }}</textarea>
+      </div>
+
+      <!-- Cor e Ícone -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">Cor</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="color"
+              value="{{ form_data.color|default:category.color|default:'#c9a84c' }}"
+              class="w-10 h-10 rounded-lg border border-white/[0.06] bg-dark-700/50 cursor-pointer p-1">
+            <span class="text-xs text-white/30" id="color-preview">{{ form_data.color|default:category.color|default:'#c9a84c' }}</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">Ícone</label>
+          <input type="text" name="icon"
+            value="{{ form_data.icon|default:category.icon|default:'' }}"
+            placeholder="ex: 🍔"
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="flex gap-3 pt-2">
+        <button type="submit"
+          class="flex-1 py-3 rounded-xl bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-200">
+          {% if action == 'edit' %}Salvar alterações{% else %}Criar categoria{% endif %}
+        </button>
+        <a href="{% url 'categories:list' %}"
+          class="px-6 py-3 rounded-xl border border-white/[0.06] text-white/50 text-sm hover:border-white/15 hover:text-white/80 transition-all">
+          Cancelar
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  const colorInput = document.querySelector('input[type="color"]');
+  const colorPreview = document.getElementById('color-preview');
+  if (colorInput && colorPreview) {
+    colorInput.addEventListener('input', () => {
+      colorPreview.textContent = colorInput.value;
+    });
+  }
+</script>
+{% endblock %}
