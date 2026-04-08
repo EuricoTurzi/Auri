@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
@@ -80,11 +80,11 @@ class ChangePasswordView(LoginRequiredMixin, View):
             return render(request, 'accounts/change_password.html', {'form': form})
 
         try:
-            change_first_access_password(
+            user = change_first_access_password(
                 user=request.user,
                 new_password=form.cleaned_data['new_password'],
             )
-            login(request, request.user)
+            update_session_auth_hash(request, user)
             messages.success(request, 'Senha alterada com sucesso!')
             return redirect('transactions:dashboard')
         except ValueError as e:
