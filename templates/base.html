@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Auri{% endblock %} — Controle Financeiro</title>
+  <meta name="description" content="{% block meta_description %}Auri — controle financeiro pessoal inteligente com assistente de IA.{% endblock %}">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'system-ui', 'sans-serif'],
+            serif: ['Playfair Display', 'Georgia', 'serif'],
+          },
+          colors: {
+            dark: {
+              950: '#08070d',
+              900: '#0e0d15',
+              800: '#16141f',
+              700: '#1e1c28',
+              600: '#272432',
+            },
+            gold: {
+              50:  '#fdf9ef',
+              100: '#f8efd5',
+              200: '#f0dba6',
+              300: '#e2c97e',
+              400: '#d4b85c',
+              500: '#c9a84c',
+              600: '#b08d35',
+              700: '#8a6d2a',
+              800: '#6b5422',
+              900: '#4a3a18',
+            },
+            emerald: {
+              400: '#4ade80',
+              500: '#22c55e',
+            }
+          },
+          borderRadius: {
+            '4xl': '2rem',
+            '5xl': '2.5rem',
+          },
+          letterSpacing: {
+            'widest-plus': '0.2em',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="{% static 'styles/main.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="font-sans text-white bg-dark-950 antialiased overflow-x-hidden">
+
+  {% block navbar %}
+    {% include "includes/navbar.html" %}
+  {% endblock %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+    <footer class="border-t border-white/[0.04] bg-dark-950">
+      <div class="max-w-7xl mx-auto px-6 py-16">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-10">
+          <div>
+            <span class="font-serif text-2xl text-gold-400">Auri</span>
+            <p class="mt-3 text-sm text-white/25 max-w-xs leading-relaxed">
+              Controle financeiro pessoal.<br>Modular. Inteligente. Sob medida.
+            </p>
+          </div>
+          <div class="flex gap-16 text-sm text-white/30">
+            <div class="flex flex-col gap-3">
+              <span class="text-white/50 font-medium text-[10px] uppercase tracking-widest-plus">Produto</span>
+              <a href="#features" class="hover:text-gold-400 transition-colors duration-300">Funcionalidades</a>
+              <a href="#assistant" class="hover:text-gold-400 transition-colors duration-300">Assistente IA</a>
+              <a href="#reports" class="hover:text-gold-400 transition-colors duration-300">Relatórios</a>
+            </div>
+            <div class="flex flex-col gap-3">
+              <span class="text-white/50 font-medium text-[10px] uppercase tracking-widest-plus">Conta</span>
+              <a href="#" class="hover:text-gold-400 transition-colors duration-300">Entrar</a>
+              <a href="#" class="hover:text-gold-400 transition-colors duration-300">Criar conta</a>
+            </div>
+          </div>
+        </div>
+        <div class="divider-gold mt-12 mb-6"></div>
+        <div class="text-[11px] text-white/15 tracking-wider">
+          &copy; {{ current_year }} Auri. Todos os direitos reservados.
+        </div>
+      </div>
+    </footer>
+  {% endblock %}
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

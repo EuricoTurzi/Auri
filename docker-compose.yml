@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: auri_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auri
+      POSTGRES_USER: auri
+      POSTGRES_PASSWORD: auri
+    ports:
+      - "5434:5432"
+    volumes:
+      - auri_pgdata:/var/lib/postgresql/data
+
+volumes:
+  auri_pgdata:

@@ -1,0 +1,68 @@
+<!-- Navbar — Dark Luxury -->
+<nav id="navbar" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-out">
+  <div class="navbar-glass flex items-center gap-1 px-2 py-2 rounded-full">
+
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2.5 pl-4 pr-5">
+      <span class="font-serif text-lg text-gold-400 tracking-wide">Auri</span>
+    </a>
+
+    <!-- Separador -->
+    <div class="w-px h-4 bg-white/[0.06]"></div>
+
+    <!-- Links -->
+    <div class="hidden md:flex items-center gap-0.5 px-2">
+      <a href="#features" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+        Funcionalidades
+      </a>
+      <a href="#assistant" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+        Assistente
+      </a>
+      <a href="#reports" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+        Relatórios
+      </a>
+    </div>
+
+    <!-- Separador -->
+    <div class="w-px h-4 bg-white/[0.06] hidden md:block"></div>
+
+    <!-- Auth -->
+    <div class="flex items-center gap-2 pl-2">
+      <a href="#" class="px-4 py-1.5 rounded-full text-[13px] text-white/40 hover:text-white/70 transition-colors duration-300">
+        Entrar
+      </a>
+      <a href="#" class="px-5 py-1.5 rounded-full text-[13px] font-medium text-dark-950 bg-gold-400 hover:bg-gold-300 transition-colors duration-300">
+        Criar conta
+      </a>
+    </div>
+
+    <!-- Mobile menu toggle -->
+    <button id="mobile-menu-btn" class="md:hidden p-2 rounded-full hover:bg-white/5 transition-colors" aria-label="Menu">
+      <svg class="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 9h16.5m-16.5 6.75h16.5"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile dropdown -->
+  <div id="mobile-menu" class="hidden md:hidden mt-2 navbar-glass rounded-2xl p-3">
+    <div class="flex flex-col gap-1">
+      <a href="#features" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Funcionalidades</a>
+      <a href="#assistant" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Assistente</a>
+      <a href="#reports" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Relatórios</a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+  }
+
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('navbar-scrolled', window.scrollY > 80);
+  }, { passive: true });
+</script>

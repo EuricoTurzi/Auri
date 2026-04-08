@@ -1,0 +1,234 @@
+/* ========================================
+   Auri — Dark Luxury Design System
+   Aesthetic: Private banking / Gentleman
+   Accent: Gold (aurum)
+   ======================================== */
+
+/* --- Base --- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #08070d;
+}
+
+/* --- Dark Glass Navbar --- */
+.navbar-glass {
+  background: rgba(8, 7, 13, 0.55);
+  backdrop-filter: blur(32px) saturate(1.1);
+  -webkit-backdrop-filter: blur(32px) saturate(1.1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04),
+              0 2px 16px rgba(0, 0, 0, 0.4);
+}
+
+.navbar-scrolled .navbar-glass {
+  background: rgba(8, 7, 13, 0.82);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06),
+              0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* --- Orbital Lines (ellipses decorativas finas) --- */
+.orbit {
+  border: 1px solid rgba(201, 168, 76, 0.06);
+  border-radius: 50%;
+  position: absolute;
+  pointer-events: none;
+}
+
+.orbit-bright {
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  border-radius: 50%;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* --- Glow (sutil, warm) --- */
+.glow-gold {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.07) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+.glow-gold-lg {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.05) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+/* --- 3D Card Scene --- */
+.card-scene {
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* --- Finance Card (premium dark) --- */
+.finance-card {
+  background: linear-gradient(165deg, rgba(201, 168, 76, 0.08) 0%, rgba(8, 7, 13, 0.96) 60%);
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  border-radius: 1.25rem;
+}
+
+.finance-card-gold {
+  background: linear-gradient(155deg, #d4b85c 0%, #b08d35 40%, #8a6d2a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 80px rgba(201, 168, 76, 0.12),
+    0 30px 60px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+  border-radius: 1.25rem;
+}
+
+/* --- Card surface (dark bento) --- */
+.card-surface {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 1.25rem;
+  transition: border-color 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-surface:hover {
+  border-color: rgba(201, 168, 76, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2),
+              0 0 0 1px rgba(201, 168, 76, 0.06);
+  transform: translateY(-2px);
+}
+
+/* --- Gold Gradient Text --- */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #e2c97e 0%, #c9a84c 40%, #b08d35 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Thin horizontal divider with gold center --- */
+.divider-gold {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(201, 168, 76, 0.2) 50%, transparent 100%);
+}
+
+/* --- Stats --- */
+.stat-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Keyframe Animations --- */
+
+/* Slow orbit rotation */
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-orbit-slow {
+  animation: orbit-spin 90s linear infinite;
+}
+
+.animate-orbit-slower {
+  animation: orbit-spin 120s linear infinite reverse;
+}
+
+/* Pulse ring (single expanding ring) */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.pulse-ring-delayed {
+  animation: pulse-ring 4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation-delay: 2s;
+}
+
+/* Gentle float */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-gentle-float {
+  animation: gentle-float 5s ease-in-out infinite;
+}
+
+/* Subtle shimmer on gold elements */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 6s ease-in-out infinite;
+}
+
+/* Fade in subtle */
+@keyframes fade-in-subtle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Marquee for logos/partners */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* --- Parallax layers (via CSS transforms, enhanced by GSAP) --- */
+.parallax-layer {
+  will-change: transform;
+}
+
+/* --- Focus styles --- */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #c9a84c;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --- Selection --- */
+::selection {
+  background: rgba(201, 168, 76, 0.2);
+  color: #fff;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #08070d; }
+::-webkit-scrollbar-thumb { background: rgba(201, 168, 76, 0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 168, 76, 0.3); }

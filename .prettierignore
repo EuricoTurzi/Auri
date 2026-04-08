@@ -1,0 +1,12 @@
+# Ignore Django templates (use djLint instead)
+templates/
+*.html
+
+# Other ignores
+*.min.js
+*.min.css
+node_modules/
+dist/
+build/
+
+*.md
