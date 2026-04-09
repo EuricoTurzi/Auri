@@ -13,7 +13,7 @@ class LoginView(View):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect('transactions:dashboard')
+            return redirect('transactions:list')
         form = LoginForm()
         return render(request, 'accounts/login.html', {'form': form})
 
@@ -35,7 +35,7 @@ class LoginView(View):
             return render(request, 'accounts/login.html', {'form': form})
 
         login(request, user)
-        return redirect('transactions:dashboard')
+        return redirect('transactions:list')
 
 
 class RegisterView(View):
@@ -43,7 +43,7 @@ class RegisterView(View):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect('transactions:dashboard')
+            return redirect('transactions:list')
         form = RegisterForm()
         return render(request, 'accounts/register.html', {'form': form})
 
@@ -86,7 +86,7 @@ class ChangePasswordView(LoginRequiredMixin, View):
             )
             update_session_auth_hash(request, user)
             messages.success(request, 'Senha alterada com sucesso!')
-            return redirect('transactions:dashboard')
+            return redirect('transactions:list')
         except ValueError as e:
             messages.error(request, str(e))
             return render(request, 'accounts/change_password.html', {'form': form})
