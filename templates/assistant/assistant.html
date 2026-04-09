@@ -226,6 +226,7 @@
       }
 
     } else if (data.status === 'missing') {
+      currentInteractionId = data.interaction_id || currentInteractionId;
       var question = data.question || data.message || 'Preciso de mais informações. Pode detalhar?';
       addMessage(question, 'assistant');
 
@@ -430,7 +431,7 @@
         'X-CSRFToken': getCsrfToken(),
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, interaction_id: currentInteractionId }),
     })
       .then(function (res) {
         if (!res.ok) throw new Error('Erro na requisição: ' + res.status);
@@ -455,6 +456,9 @@
 
     var formData = new FormData();
     formData.append('audio', blob, 'recording.webm');
+    if (currentInteractionId) {
+      formData.append('interaction_id', currentInteractionId);
+    }
 
     fetch('{% url "assistant:audio" %}', {
       method: 'POST',

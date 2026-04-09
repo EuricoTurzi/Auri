@@ -156,7 +156,7 @@ Extraia os dados da transação a partir do que o usuário disse, em linguagem n
 }}"""
 
 
-def interpret_transaction(user, text: str) -> dict:
+def interpret_transaction(user, text: str, conversation_history=None) -> dict:
     """
     Envia um texto em linguagem natural para o GPT e extrai os dados de uma transação financeira.
 
@@ -167,6 +167,8 @@ def interpret_transaction(user, text: str) -> dict:
     Args:
         user: Instância do usuário autenticado (CustomUser).
         text (str): Texto em linguagem natural descrevendo a transação.
+        conversation_history (list[dict] | None): Histórico de mensagens anteriores
+            para manter continuidade em conversas multi-turno.
 
     Returns:
         dict: Dicionário com os campos extraídos da transação:
@@ -193,14 +195,16 @@ def interpret_transaction(user, text: str) -> dict:
 
     system_prompt = build_system_prompt(user)
 
+    messages = [{"role": "system", "content": system_prompt}]
+    if conversation_history:
+        messages.extend(conversation_history)
+    messages.append({"role": "user", "content": text})
+
     try:
         client = openai.OpenAI(api_key=api_key)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": text},
-            ],
+            messages=messages,
             response_format={"type": "json_object"},
             temperature=0,
         )

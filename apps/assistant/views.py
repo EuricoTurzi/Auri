@@ -64,6 +64,29 @@ def _build_llm_response(interaction, llm_data):
     })
 
 
+def _build_conversation_history(interaction_id, user):
+    """
+    Monta histórico de conversa a partir de uma interação anterior.
+    Retorna lista de mensagens no formato OpenAI (role/content) ou None.
+    """
+    if not interaction_id:
+        return None
+
+    AssistantInteraction = apps.get_model("assistant", "AssistantInteraction")
+    try:
+        prev = AssistantInteraction.objects.get(id=interaction_id, user=user)
+    except AssistantInteraction.DoesNotExist:
+        return None
+
+    history = []
+    # Mensagem do usuário na interação anterior
+    history.append({"role": "user", "content": prev.input_content})
+    # Resposta da LLM na interação anterior
+    llm_resp = prev.llm_response or {}
+    history.append({"role": "assistant", "content": json.dumps(llm_resp)})
+    return history
+
+
 class AssistantView(LoginRequiredMixin, View):
     """GET /assistant/ — página principal do assistente."""
 
@@ -86,8 +109,13 @@ class AssistantTextView(LoginRequiredMixin, View):
         if not message:
             return JsonResponse({"error": "O campo 'message' é obrigatório."}, status=400)
 
+        # Monta histórico de conversa se houver interação anterior
+        conversation_history = _build_conversation_history(
+            body.get("interaction_id"), request.user
+        )
+
         try:
-            llm_data = interpret_transaction(request.user, message)
+            llm_data = interpret_transaction(request.user, message, conversation_history)
             interaction = create_interaction(
                 user=request.user,
                 input_type="texto",
@@ -108,9 +136,13 @@ class AssistantAudioView(LoginRequiredMixin, View):
         if not audio_file:
             return JsonResponse({"error": "Nenhum arquivo de áudio enviado."}, status=400)
 
+        # Monta histórico de conversa se houver interação anterior
+        interaction_id = request.POST.get("interaction_id")
+        conversation_history = _build_conversation_history(interaction_id, request.user)
+
         try:
             transcribed_text = transcribe_audio(audio_file)
-            llm_data = interpret_transaction(request.user, transcribed_text)
+            llm_data = interpret_transaction(request.user, transcribed_text, conversation_history)
             interaction = create_interaction(
                 user=request.user,
                 input_type="audio",
