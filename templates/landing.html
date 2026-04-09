@@ -40,11 +40,14 @@
         </p>
 
         <div id="hero-cta" class="mt-12 flex flex-wrap items-center gap-5 opacity-0">
-          <a href="#" class="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-400 shadow-lg shadow-gold-500/10">
+          <a href="{% url 'accounts:register' %}" class="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-400 shadow-lg shadow-gold-500/10">
             Comece agora
             <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
             </svg>
+          </a>
+          <a href="{% url 'accounts:login' %}" class="text-sm text-white/30 hover:text-white/60 transition-colors duration-300 underline underline-offset-4 decoration-white/10 hover:decoration-white/25">
+            Já tenho conta
           </a>
           <a href="#features" class="text-sm text-white/30 hover:text-white/60 transition-colors duration-300 underline underline-offset-4 decoration-white/10 hover:decoration-white/25">
             Explorar

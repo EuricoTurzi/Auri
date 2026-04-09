@@ -65,6 +65,7 @@
       </button>
     </form>
 
+    {% if google_enabled %}
     <!-- Divisor -->
     <div class="flex items-center gap-4 my-8">
       <div class="flex-1 h-px bg-white/[0.06]"></div>
@@ -83,6 +84,7 @@
       </svg>
       Entrar com Google
     </a>
+    {% endif %}
 
     <!-- Link registro -->
     <p class="text-center mt-8 text-sm text-white/25">

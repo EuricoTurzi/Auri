@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -8,6 +9,10 @@ from apps.accounts.forms import ChangePasswordForm, LoginForm, RegisterForm
 from apps.accounts.services import change_first_access_password, register_user
 
 
+def _google_enabled():
+    return bool(getattr(settings, "GOOGLE_CLIENT_ID", ""))
+
+
 class LoginView(View):
     """View de login com e-mail e senha."""
 
@@ -15,12 +20,13 @@ class LoginView(View):
         if request.user.is_authenticated:
             return redirect('transactions:list')
         form = LoginForm()
-        return render(request, 'accounts/login.html', {'form': form})
+        return render(request, 'accounts/login.html', {'form': form, 'google_enabled': _google_enabled()})
 
     def post(self, request):
         form = LoginForm(request.POST)
+        ctx = {'form': form, 'google_enabled': _google_enabled()}
         if not form.is_valid():
-            return render(request, 'accounts/login.html', {'form': form})
+            return render(request, 'accounts/login.html', ctx)
 
         email = form.cleaned_data['email']
         password = form.cleaned_data['password']
@@ -28,11 +34,11 @@ class LoginView(View):
 
         if user is None:
             messages.error(request, 'E-mail ou senha inválidos.')
-            return render(request, 'accounts/login.html', {'form': form})
+            return render(request, 'accounts/login.html', ctx)
 
         if not user.is_active:
             messages.error(request, 'Conta desativada.')
-            return render(request, 'accounts/login.html', {'form': form})
+            return render(request, 'accounts/login.html', ctx)
 
         login(request, user)
         return redirect('transactions:list')

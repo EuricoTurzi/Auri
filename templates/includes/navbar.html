@@ -12,15 +12,30 @@
 
     <!-- Links -->
     <div class="hidden md:flex items-center gap-0.5 px-2">
-      <a href="#features" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
-        Funcionalidades
-      </a>
-      <a href="#assistant" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
-        Assistente
-      </a>
-      <a href="#reports" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
-        Relatórios
-      </a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'transactions:list' %}" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Transações
+        </a>
+        <a href="{% url 'cards:list' %}" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Cartões
+        </a>
+        <a href="{% url 'categories:list' %}" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Categorias
+        </a>
+        <a href="{% url 'assistant:assistant' %}" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Assistente
+        </a>
+      {% else %}
+        <a href="#features" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Funcionalidades
+        </a>
+        <a href="#assistant" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Assistente
+        </a>
+        <a href="#reports" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Relatórios
+        </a>
+      {% endif %}
     </div>
 
     <!-- Separador -->
@@ -28,12 +43,24 @@
 
     <!-- Auth -->
     <div class="flex items-center gap-2 pl-2">
-      <a href="#" class="px-4 py-1.5 rounded-full text-[13px] text-white/40 hover:text-white/70 transition-colors duration-300">
-        Entrar
-      </a>
-      <a href="#" class="px-5 py-1.5 rounded-full text-[13px] font-medium text-dark-950 bg-gold-400 hover:bg-gold-300 transition-colors duration-300">
-        Criar conta
-      </a>
+      {% if user.is_authenticated %}
+        <span class="px-3.5 py-1.5 text-[13px] text-white/40 hidden md:block">
+          {{ user.nickname|default:user.email }}
+        </span>
+        <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+          {% csrf_token %}
+          <button type="submit" class="px-4 py-1.5 rounded-full text-[13px] text-white/40 hover:text-white/70 transition-colors duration-300 cursor-pointer">
+            Sair
+          </button>
+        </form>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="px-4 py-1.5 rounded-full text-[13px] text-white/40 hover:text-white/70 transition-colors duration-300">
+          Entrar
+        </a>
+        <a href="{% url 'accounts:register' %}" class="px-5 py-1.5 rounded-full text-[13px] font-medium text-dark-950 bg-gold-400 hover:bg-gold-300 transition-colors duration-300">
+          Criar conta
+        </a>
+      {% endif %}
     </div>
 
     <!-- Mobile menu toggle -->
@@ -47,9 +74,24 @@
   <!-- Mobile dropdown -->
   <div id="mobile-menu" class="hidden md:hidden mt-2 navbar-glass rounded-2xl p-3">
     <div class="flex flex-col gap-1">
-      <a href="#features" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Funcionalidades</a>
-      <a href="#assistant" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Assistente</a>
-      <a href="#reports" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Relatórios</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'transactions:list' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Transações</a>
+        <a href="{% url 'cards:list' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Cartões</a>
+        <a href="{% url 'categories:list' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Categorias</a>
+        <a href="{% url 'assistant:assistant' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Assistente</a>
+        <div class="border-t border-white/[0.06] my-1"></div>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="w-full text-left px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Sair</button>
+        </form>
+      {% else %}
+        <a href="#features" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Funcionalidades</a>
+        <a href="#assistant" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Assistente</a>
+        <a href="#reports" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Relatórios</a>
+        <div class="border-t border-white/[0.06] my-1"></div>
+        <a href="{% url 'accounts:login' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Entrar</a>
+        <a href="{% url 'accounts:register' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Criar conta</a>
+      {% endif %}
     </div>
   </div>
 </nav>
