@@ -393,13 +393,8 @@ def create_installment_transaction(user, transaction_data, total_installments):
         # Distribui o centavo restante nas primeiras parcelas
         parcela_amount = unit + Decimal("0.01") if i <= extra_count else unit
 
-        # Calcula due_date: data_base + i meses
-        mes = data_base.month + i
-        ano = data_base.year + (mes - 1) // 12
-        mes = (mes - 1) % 12 + 1
-        ultimo_dia = calendar.monthrange(ano, mes)[1]
-        dia = min(data_base.day, ultimo_dia)
-        due_date = data_base.replace(year=ano, month=mes, day=dia)
+        # Calcula due_date: data_base + i meses usando o helper existente
+        due_date = _proxima_data(data_base, "mensal", i)
 
         Installment.objects.create(
             parent_transaction=transacao_pai,
