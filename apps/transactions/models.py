@@ -54,6 +54,7 @@ class Installment(BaseModel):
 
     class Meta:
         ordering = ["installment_number"]
+        unique_together = [("parent_transaction", "installment_number")]
         verbose_name = "Parcela"
         verbose_name_plural = "Parcelas"
 
