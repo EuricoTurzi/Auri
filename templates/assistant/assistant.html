@@ -47,6 +47,22 @@
             </div>
           </div>
 
+          <!-- Indicador de digitação (loading) -->
+          <div id="typing-indicator" class="hidden flex items-start gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+              </svg>
+            </div>
+            <div class="max-w-sm px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-700/60 border border-white/[0.06]">
+              <div class="flex gap-1.5 items-center h-5">
+                <span class="w-2 h-2 rounded-full bg-gold-400/50 animate-bounce" style="animation-delay: 0ms"></span>
+                <span class="w-2 h-2 rounded-full bg-gold-400/50 animate-bounce" style="animation-delay: 150ms"></span>
+                <span class="w-2 h-2 rounded-full bg-gold-400/50 animate-bounce" style="animation-delay: 300ms"></span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Input de texto -->
@@ -70,10 +86,6 @@
             </button>
           </div>
 
-          <!-- Indicador de carregamento -->
-          <div id="loading-indicator" class="hidden absolute right-20 top-1/2 -translate-y-1/2">
-            <div class="w-4 h-4 border-2 border-gold-400/40 border-t-gold-400 rounded-full animate-spin"></div>
-          </div>
         </div>
 
         <!-- Controles de gravação de áudio -->
@@ -567,11 +579,21 @@
   // ─── Estados visuais ────────────────────────────────────────────────
   function setLoading(active) {
     var btn = document.getElementById('send-btn');
-    var indicator = document.getElementById('loading-indicator');
     var input = document.getElementById('text-input');
+    var typing = document.getElementById('typing-indicator');
+    var container = document.getElementById('chat-messages');
     if (btn) btn.disabled = active;
     if (input) input.disabled = active;
-    if (indicator) indicator.classList.toggle('hidden', !active);
+    if (typing) {
+      if (active) {
+        typing.classList.remove('hidden');
+        typing.classList.add('flex');
+        if (container) container.scrollTop = container.scrollHeight;
+      } else {
+        typing.classList.add('hidden');
+        typing.classList.remove('flex');
+      }
+    }
   }
 
   function setConfirmLoading(active) {
