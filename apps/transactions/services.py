@@ -1,7 +1,5 @@
+from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError
-
-from apps.cards.models import Card
-from apps.categories.models import Category
 
 from .models import Transaction
 
@@ -28,6 +26,7 @@ def _validar_categoria(category_id, user):
 
     Levanta PermissionError se não encontrada ou não pertencer ao usuário.
     """
+    Category = django_apps.get_model("categories", "Category")
     try:
         categoria = Category.objects.get(id=category_id, is_active=True)
     except Category.DoesNotExist:
@@ -44,6 +43,7 @@ def _validar_cartao(card_id, user):
 
     Levanta PermissionError se não encontrado ou não pertencer ao usuário.
     """
+    Card = django_apps.get_model("cards", "Card")
     try:
         cartao = Card.objects.get(id=card_id, is_active=True)
     except Card.DoesNotExist:
