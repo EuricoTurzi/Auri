@@ -18,6 +18,13 @@ class Transaction(BaseModel):
     due_date = models.DateField(null=True, blank=True)
     is_recurring = models.BooleanField(default=False)
     is_installment = models.BooleanField(default=False)
+    recurring_parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recurring_children",
+    )
 
     class Meta:
         ordering = ["-date", "-created_at"]

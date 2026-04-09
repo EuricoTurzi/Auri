@@ -260,19 +260,9 @@ def create_recurring_transaction(user, transaction_data, frequency):
 
     # Gera ocorrências futuras para os próximos 12 meses
     data_base = transacao_pai.date
-    from datetime import date as date_type
 
-    if hasattr(data_base, "date"):
-        # Garante que seja um objeto date puro, não datetime
-        data_base = data_base.date() if hasattr(data_base, "date") and callable(data_base.date) else data_base
-
-    # Limite: 12 meses a partir da data original
-    mes_limite = data_base.month + 12
-    ano_limite = data_base.year + (mes_limite - 1) // 12
-    mes_limite = (mes_limite - 1) % 12 + 1
-    ultimo_dia_limite = calendar.monthrange(ano_limite, mes_limite)[1]
-    from datetime import date as dt_date
-    data_limite = dt_date(ano_limite, mes_limite, ultimo_dia_limite)
+    # Limite exato: mesma data 12 meses no futuro (usando lógica mensal)
+    data_limite = _proxima_data(data_base, "mensal", 12)
 
     iteracao = 1
     while True:
@@ -292,6 +282,7 @@ def create_recurring_transaction(user, transaction_data, frequency):
             date=proxima,
             due_date=None,
             is_recurring=True,
+            recurring_parent=transacao_pai,
         )
         iteracao += 1
 
@@ -331,13 +322,8 @@ def delete_recurring_transaction(transaction_id, user):
     transacao.is_active = False
     transacao.save()
 
-    # Soft-delete em todas as ocorrências futuras com as mesmas características
+    # Soft-delete em todas as ocorrências filhas vinculadas via recurring_parent
     Transaction.objects.filter(
-        user=user,
-        is_recurring=True,
+        recurring_parent=transacao,
         is_active=True,
-        name=transacao.name,
-        amount=transacao.amount,
-        category=transacao.category,
-        date__gte=transacao.date,
     ).update(is_active=False)
