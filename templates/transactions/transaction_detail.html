@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}{{ transacao.name }} — Auri{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-dark-950 px-6 py-10">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Navegação -->
+    <div class="mb-8">
+      <a href="{% url 'transactions:list' %}" class="text-xs text-white/30 hover:text-white/60 transition-colors">← Transações</a>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm
+        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Hero da Transação -->
+    <div class="relative px-6 py-6 rounded-2xl bg-dark-800/70 border border-white/[0.07] overflow-hidden mb-6">
+      <!-- Fundo decorativo -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full
+          {% if transacao.type == 'entrada' %}bg-emerald-500/[0.04]{% else %}bg-red-500/[0.04]{% endif %} blur-2xl"></div>
+        <div class="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-gold-500/[0.03] blur-xl"></div>
+      </div>
+
+      <div class="relative flex items-start justify-between gap-4">
+        <!-- Informações principais -->
+        <div class="min-w-0">
+          <div class="flex items-center gap-3 flex-wrap mb-1">
+            <h1 class="font-serif text-2xl text-white truncate">{{ transacao.name }}</h1>
+            <!-- Tipo -->
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+              {% if transacao.type == 'entrada' %}bg-emerald-500/15 text-emerald-400
+              {% else %}bg-red-500/15 text-red-400{% endif %}">
+              {{ transacao.get_type_display }}
+            </span>
+            <!-- Status -->
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+              {% if transacao.status == 'pago' %}bg-emerald-500/10 text-emerald-400/80
+              {% else %}bg-gold-500/10 text-gold-400/80{% endif %}">
+              {{ transacao.get_status_display }}
+            </span>
+            <!-- Recorrente -->
+            {% if transacao.is_recurring %}
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-white/[0.06] text-white/40">
+              Recorrente
+            </span>
+            {% endif %}
+            <!-- Parcelado -->
+            {% if transacao.is_installment %}
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-white/[0.06] text-white/40">
+              Parcelado
+            </span>
+            {% endif %}
+          </div>
+
+          {% if transacao.description %}
+          <p class="text-sm text-white/40 mt-1">{{ transacao.description }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Valor -->
+        <div class="flex-shrink-0 text-right">
+          <p class="text-2xl font-semibold
+            {% if transacao.type == 'entrada' %}text-emerald-400{% else %}text-red-400{% endif %}">
+            {% if transacao.type == 'entrada' %}+{% else %}-{% endif %}
+            R$ {{ transacao.amount|floatformat:2 }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid de detalhes -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+
+      <!-- Data -->
+      <div class="px-5 py-4 rounded-xl bg-dark-800/50 border border-white/[0.05]">
+        <p class="text-[11px] text-white/30 uppercase tracking-widest mb-1">Data</p>
+        <p class="text-sm font-medium text-white/80">{{ transacao.date }}</p>
+      </div>
+
+      <!-- Vencimento -->
+      {% if transacao.due_date %}
+      <div class="px-5 py-4 rounded-xl bg-dark-800/50 border border-white/[0.05]">
+        <p class="text-[11px] text-white/30 uppercase tracking-widest mb-1">Vencimento</p>
+        <p class="text-sm font-medium text-white/80">{{ transacao.due_date }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Categoria -->
+      {% if transacao.category %}
+      <div class="px-5 py-4 rounded-xl bg-dark-800/50 border border-white/[0.05]">
+        <p class="text-[11px] text-white/30 uppercase tracking-widest mb-1">Categoria</p>
+        <p class="text-sm font-medium text-white/80">{{ transacao.category.name }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Cartão -->
+      {% if transacao.card %}
+      <div class="px-5 py-4 rounded-xl bg-dark-800/50 border border-white/[0.05]">
+        <p class="text-[11px] text-white/30 uppercase tracking-widest mb-1">Cartão</p>
+        <p class="text-sm font-medium text-white/80">{{ transacao.card.name }} &middot; ****{{ transacao.card.last_four_digits }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Recorrência (frequência) -->
+      {% if transacao.is_recurring %}
+      <div class="px-5 py-4 rounded-xl bg-dark-800/50 border border-white/[0.05]">
+        <p class="text-[11px] text-white/30 uppercase tracking-widest mb-1">Frequência</p>
+        <p class="text-sm font-medium text-white/80">
+          {% if transacao.recurring_config %}{{ transacao.recurring_config.get_frequency_display }}{% else %}—{% endif %}
+        </p>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Parcelas -->
+    {% if installments %}
+    <div class="mb-8">
+      <h2 class="font-serif text-lg text-white/70 mb-4">Parcelas</h2>
+      <div class="rounded-2xl bg-dark-800/50 border border-white/[0.05] overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/[0.05]">
+              <th class="text-left px-5 py-3 text-[11px] font-medium uppercase tracking-widest text-white/30">#</th>
+              <th class="text-left px-5 py-3 text-[11px] font-medium uppercase tracking-widest text-white/30">Valor</th>
+              <th class="text-left px-5 py-3 text-[11px] font-medium uppercase tracking-widest text-white/30">Vencimento</th>
+              <th class="text-left px-5 py-3 text-[11px] font-medium uppercase tracking-widest text-white/30">Status</th>
+              <th class="px-5 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/[0.04]">
+            {% for parcela in installments %}
+            <tr class="hover:bg-white/[0.02] transition-colors">
+              <td class="px-5 py-3.5 text-white/50">
+                {{ parcela.installment_number }}/{{ parcela.total_installments }}
+              </td>
+              <td class="px-5 py-3.5 text-white/70 font-medium">
+                R$ {{ parcela.amount|floatformat:2 }}
+              </td>
+              <td class="px-5 py-3.5 text-white/40">
+                {{ parcela.due_date }}
+              </td>
+              <td class="px-5 py-3.5">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+                  {% if parcela.status == 'pago' %}bg-emerald-500/10 text-emerald-400/80
+                  {% else %}bg-gold-500/10 text-gold-400/80{% endif %}">
+                  {{ parcela.get_status_display }}
+                </span>
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                {% if parcela.status == 'pendente' %}
+                <form method="post" action="{% url 'transactions:installment_pay' parcela.pk %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit"
+                    class="px-3 py-1.5 rounded-lg text-xs text-emerald-400/70 border border-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-400 transition-all">
+                    Marcar como pago
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Ações -->
+    <div class="flex items-center gap-3">
+      <a href="{% url 'transactions:edit' transacao.pk %}"
+        class="px-5 py-2.5 rounded-xl bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-200">
+        Editar
+      </a>
+      <form method="post" action="{% url 'transactions:delete' transacao.pk %}" onsubmit="return confirm('Remover a transação \'{{ transacao.name }}\'? Esta ação não pode ser desfeita.')">
+        {% csrf_token %}
+        <button type="submit"
+          class="px-5 py-2.5 rounded-xl border border-red-500/15 text-red-400/70 text-sm hover:border-red-500/25 hover:text-red-400 transition-all">
+          Remover
+        </button>
+      </form>
+      <a href="{% url 'transactions:list' %}"
+        class="px-5 py-2.5 rounded-xl border border-white/[0.06] text-white/50 text-sm hover:border-white/15 hover:text-white/80 transition-all">
+        Voltar à lista
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

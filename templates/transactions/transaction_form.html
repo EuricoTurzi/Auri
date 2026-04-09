@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}{% if editando %}Editar Transação{% else %}Nova Transação{% endif %} — Auri{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-dark-950 flex items-start justify-center px-6 py-10">
+  <div class="w-full max-w-lg">
+
+    <!-- Cabeçalho -->
+    <div class="mb-8">
+      <a href="{% url 'transactions:list' %}" class="text-xs text-white/30 hover:text-white/60 transition-colors">← Transações</a>
+      <h1 class="font-serif text-2xl text-gold-400 mt-3">
+        {% if editando %}Editar Transação{% else %}Nova Transação{% endif %}
+      </h1>
+    </div>
+
+    <!-- Erro -->
+    {% if error %}
+    <div class="mb-6 px-4 py-3 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-sm">
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Mensagens -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm
+        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Formulário -->
+    <form method="post" class="space-y-5" id="transaction-form">
+      {% csrf_token %}
+
+      <!-- Nome -->
+      <div>
+        <label for="id_name" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Nome *</label>
+        <input type="text" id="id_name" name="name" required autofocus
+          value="{{ transacao.name|default:'' }}"
+          placeholder="ex: Salário, Aluguel, Supermercado..."
+          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+      </div>
+
+      <!-- Descrição -->
+      <div>
+        <label for="id_description" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Descrição</label>
+        <textarea id="id_description" name="description" rows="2"
+          placeholder="Detalhes adicionais (opcional)"
+          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all resize-none">{{ transacao.description|default:'' }}</textarea>
+      </div>
+
+      <!-- Valor e Tipo -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Valor -->
+        <div>
+          <label for="id_amount" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Valor *</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-white/30 pointer-events-none">R$</span>
+            <input type="number" id="id_amount" name="amount" required
+              value="{{ transacao.amount|default:'' }}"
+              placeholder="0,00"
+              min="0.01"
+              step="0.01"
+              class="w-full pl-10 pr-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+          </div>
+        </div>
+
+        <!-- Tipo -->
+        <div>
+          <label for="id_type" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Tipo *</label>
+          <select id="id_type" name="type" required
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all appearance-none cursor-pointer">
+            <option value="" disabled {% if not transacao %}selected{% endif %} class="bg-dark-800">Selecione</option>
+            <option value="entrada" {% if transacao.type == 'entrada' %}selected{% endif %} class="bg-dark-800">Entrada</option>
+            <option value="saida" {% if transacao.type == 'saida' %}selected{% endif %} class="bg-dark-800">Saída</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Status e Categoria -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Status -->
+        <div>
+          <label for="id_status" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Status *</label>
+          <select id="id_status" name="status" required
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all appearance-none cursor-pointer">
+            <option value="pendente" {% if transacao.status == 'pendente' or not transacao %}selected{% endif %} class="bg-dark-800">Pendente</option>
+            <option value="pago" {% if transacao.status == 'pago' %}selected{% endif %} class="bg-dark-800">Pago</option>
+          </select>
+        </div>
+
+        <!-- Categoria -->
+        <div>
+          <label for="id_category_id" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Categoria *</label>
+          <select id="id_category_id" name="category_id" required
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all appearance-none cursor-pointer">
+            <option value="" disabled {% if not transacao %}selected{% endif %} class="bg-dark-800">Selecione</option>
+            {% for cat in categorias %}
+            <option value="{{ cat.pk }}" {% if transacao.category_id == cat.pk %}selected{% endif %} class="bg-dark-800">
+              {{ cat.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Cartão -->
+      <div>
+        <label for="id_card_id" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Cartão <span class="text-white/20 normal-case tracking-normal font-normal">(opcional)</span></label>
+        <select id="id_card_id" name="card_id"
+          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all appearance-none cursor-pointer">
+          <option value="" class="bg-dark-800">Nenhum</option>
+          {% for cartao in cartoes %}
+          <option value="{{ cartao.pk }}" {% if transacao.card_id == cartao.pk %}selected{% endif %} class="bg-dark-800">
+            {{ cartao.name }} &middot; ****{{ cartao.last_four_digits }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Data e Vencimento -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Data -->
+        <div>
+          <label for="id_date" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Data *</label>
+          <input type="date" id="id_date" name="date" required
+            value="{{ transacao.date|default:hoje }}"
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+        </div>
+
+        <!-- Vencimento -->
+        <div>
+          <label for="id_due_date" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Vencimento <span class="text-white/20 normal-case tracking-normal font-normal">(opcional)</span></label>
+          <input type="date" id="id_due_date" name="due_date"
+            value="{{ transacao.due_date|default:'' }}"
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+        </div>
+      </div>
+
+      <!-- Divisor -->
+      <div class="border-t border-white/[0.05] pt-2">
+        <p class="text-[11px] text-white/20 uppercase tracking-widest">Recorrência e Parcelamento</p>
+      </div>
+
+      <!-- Checkboxes: recorrente e parcelado -->
+      <div class="flex gap-6">
+
+        <!-- Recorrente -->
+        <label class="flex items-center gap-3 cursor-pointer group">
+          <input type="checkbox" id="id_is_recurring" name="is_recurring"
+            {% if transacao.is_recurring %}checked{% endif %}
+            class="w-4 h-4 rounded border border-white/20 bg-dark-700/50 text-gold-500 focus:ring-gold-500/30 cursor-pointer">
+          <span class="text-sm text-white/60 group-hover:text-white/80 transition-colors">Recorrente</span>
+        </label>
+
+        <!-- Parcelado -->
+        <label class="flex items-center gap-3 cursor-pointer group">
+          <input type="checkbox" id="id_is_installment" name="is_installment"
+            {% if transacao.is_installment %}checked{% endif %}
+            class="w-4 h-4 rounded border border-white/20 bg-dark-700/50 text-gold-500 focus:ring-gold-500/30 cursor-pointer">
+          <span class="text-sm text-white/60 group-hover:text-white/80 transition-colors">Parcelado</span>
+        </label>
+
+      </div>
+
+      <!-- Configuração de recorrência -->
+      <div id="recurring-fields" class="space-y-3" style="display: none;">
+        <div class="px-4 py-4 rounded-xl bg-dark-700/30 border border-white/[0.05]">
+          <label for="id_frequency" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Frequência *</label>
+          <select id="id_frequency" name="frequency"
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all appearance-none cursor-pointer">
+            <option value="semanal" {% if transacao.recurring_config.frequency == 'semanal' %}selected{% endif %} class="bg-dark-800">Semanal</option>
+            <option value="quinzenal" {% if transacao.recurring_config.frequency == 'quinzenal' %}selected{% endif %} class="bg-dark-800">Quinzenal</option>
+            <option value="mensal" {% if transacao.recurring_config.frequency == 'mensal' %}selected{% endif %} class="bg-dark-800">Mensal</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Configuração de parcelamento -->
+      <div id="installment-fields" class="space-y-3" style="display: none;">
+        <div class="px-4 py-4 rounded-xl bg-dark-700/30 border border-white/[0.05]">
+          <label for="id_total_installments" class="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">Total de parcelas *</label>
+          <input type="number" id="id_total_installments" name="total_installments"
+            value="{{ transacao.installments.first.total_installments|default:'' }}"
+            placeholder="ex: 12"
+            min="2"
+            max="360"
+            class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+          <p class="mt-1.5 text-[11px] text-white/20">O valor será dividido igualmente entre as parcelas.</p>
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="flex gap-3 pt-2">
+        <button type="submit"
+          class="flex-1 py-3 rounded-xl bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-200">
+          {% if editando %}Salvar Alterações{% else %}Criar Transação{% endif %}
+        </button>
+        <a href="{% url 'transactions:list' %}"
+          class="px-6 py-3 rounded-xl border border-white/[0.06] text-white/50 text-sm hover:border-white/15 hover:text-white/80 transition-all">
+          Cancelar
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var recurringCheck = document.getElementById('id_is_recurring');
+    var installmentCheck = document.getElementById('id_is_installment');
+    var recurringFields = document.getElementById('recurring-fields');
+    var installmentFields = document.getElementById('installment-fields');
+
+    function syncVisibility() {
+      recurringFields.style.display = recurringCheck.checked ? 'block' : 'none';
+      installmentFields.style.display = installmentCheck.checked ? 'block' : 'none';
+    }
+
+    if (recurringCheck && installmentCheck) {
+      // Mutuamente exclusivos
+      recurringCheck.addEventListener('change', function () {
+        if (this.checked) installmentCheck.checked = false;
+        syncVisibility();
+      });
+
+      installmentCheck.addEventListener('change', function () {
+        if (this.checked) recurringCheck.checked = false;
+        syncVisibility();
+      });
+
+      // Sincronizar ao carregar (modo edição)
+      syncVisibility();
+    }
+  })();
+</script>
+{% endblock %}

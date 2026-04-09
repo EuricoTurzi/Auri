@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Transações — Auri{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-dark-950 px-6 py-10">
+  <div class="max-w-5xl mx-auto">
+
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-serif text-2xl text-gold-400">Transações</h1>
+        <p class="mt-1 text-sm text-white/30">Histórico de entradas e saídas</p>
+      </div>
+      <a href="{% url 'transactions:create' %}"
+        class="px-4 py-2 rounded-xl bg-gold-500 text-dark-950 text-sm font-semibold hover:bg-gold-400 transition-all duration-200">
+        + Adicionar Transação
+      </a>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm
+        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Filtros -->
+    <form method="get" class="mb-6 p-5 rounded-2xl bg-dark-800/50 border border-white/[0.05]">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        <!-- Tipo -->
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Tipo</label>
+          <select name="type"
+            class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+            <option value="" {% if not filtros.type %}selected{% endif %} class="bg-dark-800">Todos</option>
+            <option value="entrada" {% if filtros.type == 'entrada' %}selected{% endif %} class="bg-dark-800">Entrada</option>
+            <option value="saida" {% if filtros.type == 'saida' %}selected{% endif %} class="bg-dark-800">Saída</option>
+          </select>
+        </div>
+
+        <!-- Categoria -->
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Categoria</label>
+          <select name="category_id"
+            class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+            <option value="" class="bg-dark-800">Todas</option>
+            {% for cat in categorias %}
+            <option value="{{ cat.pk }}" {% if filtros.category_id == cat.pk|stringformat:"s" %}selected{% endif %} class="bg-dark-800">
+              {{ cat.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Cartão -->
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Cartão</label>
+          <select name="card_id"
+            class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+            <option value="" class="bg-dark-800">Todos</option>
+            {% for cartao in cartoes %}
+            <option value="{{ cartao.pk }}" {% if filtros.card_id == cartao.pk|stringformat:"s" %}selected{% endif %} class="bg-dark-800">
+              {{ cartao.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Data início -->
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Data início</label>
+          <input type="date" name="date_start"
+            value="{{ filtros.date_start|default:'' }}"
+            class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all">
+        </div>
+
+        <!-- Data fim -->
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Data fim</label>
+          <input type="date" name="date_end"
+            value="{{ filtros.date_end|default:'' }}"
+            class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all">
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Status</label>
+          <select name="status"
+            class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+            <option value="" {% if not filtros.status %}selected{% endif %} class="bg-dark-800">Todos</option>
+            <option value="pendente" {% if filtros.status == 'pendente' %}selected{% endif %} class="bg-dark-800">Pendente</option>
+            <option value="pago" {% if filtros.status == 'pago' %}selected{% endif %} class="bg-dark-800">Pago</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Botões filtro -->
+      <div class="flex gap-2 mt-4">
+        <button type="submit"
+          class="px-4 py-2 rounded-xl bg-gold-500/20 text-gold-400 text-xs font-semibold hover:bg-gold-500/30 transition-all">
+          Filtrar
+        </button>
+        <a href="{% url 'transactions:list' %}"
+          class="px-4 py-2 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-white/15 hover:text-white/70 transition-all">
+          Limpar
+        </a>
+      </div>
+    </form>
+
+    <!-- Lista de transações -->
+    {% if transacoes %}
+    <div class="space-y-2">
+      {% for tx in transacoes %}
+      <div class="px-5 py-4 rounded-2xl bg-dark-800/60 border border-white/[0.05] hover:border-white/10 transition-all">
+        <div class="flex items-center justify-between gap-4">
+
+          <!-- Informações principais -->
+          <div class="flex items-center gap-4 min-w-0 flex-1">
+
+            <!-- Indicador de tipo -->
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0
+              {% if tx.type == 'entrada' %}bg-emerald-500/10{% else %}bg-red-500/10{% endif %}">
+              {% if tx.type == 'entrada' %}
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+              </svg>
+              {% else %}
+              <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+              </svg>
+              {% endif %}
+            </div>
+
+            <!-- Nome e metadados -->
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="text-sm font-medium text-white/80 truncate">{{ tx.name }}</p>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+                  {% if tx.type == 'entrada' %}bg-emerald-500/15 text-emerald-400
+                  {% else %}bg-red-500/15 text-red-400{% endif %}">
+                  {{ tx.get_type_display }}
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+                  {% if tx.status == 'pago' %}bg-emerald-500/10 text-emerald-400/70
+                  {% else %}bg-gold-500/10 text-gold-400/70{% endif %}">
+                  {{ tx.get_status_display }}
+                </span>
+              </div>
+              <div class="flex items-center gap-3 mt-0.5">
+                <p class="text-xs text-white/30">{{ tx.date }}</p>
+                {% if tx.category %}
+                <span class="text-white/15">&middot;</span>
+                <p class="text-xs text-white/30">{{ tx.category.name }}</p>
+                {% endif %}
+                {% if tx.card %}
+                <span class="text-white/15">&middot;</span>
+                <p class="text-xs text-white/30">{{ tx.card.name }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Valor e ações -->
+          <div class="flex items-center gap-4 flex-shrink-0">
+            <p class="text-sm font-semibold
+              {% if tx.type == 'entrada' %}text-emerald-400{% else %}text-red-400{% endif %}">
+              {% if tx.type == 'entrada' %}+{% else %}-{% endif %}
+              R$ {{ tx.amount|floatformat:2 }}
+            </p>
+
+            <div class="flex items-center gap-2">
+              <a href="{% url 'transactions:detail' tx.pk %}"
+                class="px-3 py-1.5 rounded-lg text-xs text-white/50 border border-white/[0.06] hover:border-white/15 hover:text-white/80 transition-all">
+                Ver
+              </a>
+              <a href="{% url 'transactions:edit' tx.pk %}"
+                class="px-3 py-1.5 rounded-lg text-xs text-white/50 border border-white/[0.06] hover:border-white/15 hover:text-white/80 transition-all">
+                Editar
+              </a>
+              <form method="post" action="{% url 'transactions:delete' tx.pk %}" onsubmit="return confirm('Remover a transação \'{{ tx.name }}\'?')">
+                {% csrf_token %}
+                <button type="submit"
+                  class="px-3 py-1.5 rounded-lg text-xs text-red-400/70 border border-red-500/10 hover:border-red-500/20 hover:text-red-400 transition-all">
+                  Remover
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Estado vazio -->
+    <div class="text-center py-20">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-dark-800/50 border border-white/[0.05] flex items-center justify-center">
+        <svg class="w-7 h-7 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <p class="text-white/20 text-sm">Nenhuma transação encontrada.</p>
+      <a href="{% url 'transactions:create' %}" class="mt-4 inline-block text-gold-400/70 text-sm hover:text-gold-400 transition-colors">
+        Registrar primeira transação →
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
