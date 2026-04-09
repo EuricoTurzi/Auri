@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/v1/categories/', include('apps.categories.api_urls')),
     path('api/v1/cards/', include('apps.cards.api_urls')),
     path('api/v1/transactions/', include('apps.transactions.api_urls')),
+    path('api/v1/assistant/', include('apps.assistant.api_urls')),
 
     # OAuth (allauth)
     path('accounts/', include('allauth.urls')),
