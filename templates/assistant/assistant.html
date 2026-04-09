@@ -98,7 +98,7 @@
             type="button"
             id="stop-btn"
             onclick="stopRecording()"
-            class="hidden flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 transition-all duration-200">
+            class="hidden items-center gap-2 px-4 py-2 rounded-xl border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 transition-all duration-200">
             <!-- Indicador pulsante -->
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -602,7 +602,9 @@
   function setLoading(active) {
     var btn = document.getElementById('send-btn');
     var indicator = document.getElementById('loading-indicator');
+    var input = document.getElementById('text-input');
     if (btn) btn.disabled = active;
+    if (input) input.disabled = active;
     if (indicator) indicator.classList.toggle('hidden', !active);
   }
 
