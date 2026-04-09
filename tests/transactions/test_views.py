@@ -244,3 +244,29 @@ class TestTransactionDetailView:
         assert response.status_code == 200
         # A página deve renderizar sem erros e conter o nome da transação
         assert b'TV Parcelada' in response.content
+
+
+# ---------------------------------------------------------------------------
+# TestTransactionUpdateView
+# ---------------------------------------------------------------------------
+
+class TestTransactionUpdateView:
+    def test_redireciona_sem_autenticacao(self, db, transaction):
+        """Usuário não autenticado é redirecionado ao tentar editar."""
+        client = Client()
+        response = client.post(f'/transactions/{transaction.pk}/edit/', {'name': 'Novo Nome'})
+        assert response.status_code == 302
+
+    def test_get_form_edicao(self, client_auth, transaction):
+        """GET /transactions/<pk>/edit/ retorna formulário com 200."""
+        response = client_auth.get(f'/transactions/{transaction.pk}/edit/')
+        assert response.status_code == 200
+
+    def test_post_atualiza_nome(self, client_auth, transaction):
+        """POST para edit URL atualiza o nome da transação e redireciona."""
+        response = client_auth.post(f'/transactions/{transaction.pk}/edit/', {
+            'name': 'Nome Atualizado',
+        })
+        assert response.status_code == 302
+        transaction.refresh_from_db()
+        assert transaction.name == 'Nome Atualizado'

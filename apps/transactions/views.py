@@ -219,6 +219,8 @@ class TransactionUpdateView(LoginRequiredMixin, View):
 
     def _build_context(self, request, transacao=None):
         """Monta contexto com categorias, cartões e transação pré-populada."""
+        from datetime import date
+
         Category = django_apps.get_model("categories", "Category")
         Card = django_apps.get_model("cards", "Card")
 
@@ -230,6 +232,7 @@ class TransactionUpdateView(LoginRequiredMixin, View):
             "cartoes": cartoes,
             "transacao": transacao,
             "editando": True,
+            "hoje": date.today(),
         }
 
     def get(self, request, pk):

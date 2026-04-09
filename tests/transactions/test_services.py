@@ -644,3 +644,49 @@ class TestSelectors:
         assert pai in qs
         # Todos os resultados devem ser pais (sem recurring_parent)
         assert all(t.recurring_parent is None for t in qs)
+
+    def test_get_user_transactions_filtro_por_categoria(self, user, category):
+        """Filtro por category_id retorna apenas transações da categoria especificada."""
+        outra_categoria = Category.objects.create(user=user, name='Outra', is_active=True)
+        t1 = Transaction.objects.create(
+            user=user, name='T1', amount=Decimal('10.00'), type='saida',
+            category=category, date=date(2024, 1, 1),
+        )
+        Transaction.objects.create(
+            user=user, name='T2', amount=Decimal('20.00'), type='entrada',
+            category=outra_categoria, date=date(2024, 1, 2),
+        )
+        qs = get_user_transactions(user, {'category_id': str(category.id)})
+        assert t1 in qs
+        assert all(t.category_id == category.id for t in qs)
+
+    def test_get_user_transactions_filtro_por_periodo(self, user, category):
+        """Filtro por date_start e date_end retorna transações dentro do período."""
+        t_dentro = Transaction.objects.create(
+            user=user, name='Dentro', amount=Decimal('10.00'), type='saida',
+            category=category, date=date(2024, 2, 15),
+        )
+        Transaction.objects.create(
+            user=user, name='Fora', amount=Decimal('20.00'), type='saida',
+            category=category, date=date(2024, 3, 10),
+        )
+        qs = get_user_transactions(user, {
+            'date_start': '2024-02-01',
+            'date_end': '2024-02-28',
+        })
+        assert t_dentro in qs
+        assert all(t.name != 'Fora' for t in qs)
+
+    def test_get_user_transactions_filtro_por_cartao(self, user, category, card):
+        """Filtro por card_id retorna apenas transações vinculadas ao cartão."""
+        t_com_cartao = Transaction.objects.create(
+            user=user, name='Com Cartão', amount=Decimal('50.00'), type='saida',
+            category=category, date=date(2024, 1, 1), card=card,
+        )
+        Transaction.objects.create(
+            user=user, name='Sem Cartão', amount=Decimal('30.00'), type='saida',
+            category=category, date=date(2024, 1, 2),
+        )
+        qs = get_user_transactions(user, {'card_id': str(card.id)})
+        assert t_com_cartao in qs
+        assert all(t.card_id == card.id for t in qs)
