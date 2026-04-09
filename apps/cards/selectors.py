@@ -51,7 +51,13 @@ def _get_current_billing_period(card):
         fim = today.replace(day=ultimo_dia)
         return inicio, fim
 
-    close_day = card.billing_close_day
+    try:
+        close_day = int(card.billing_close_day)
+    except (TypeError, ValueError):
+        inicio = today.replace(day=1)
+        ultimo_dia = calendar.monthrange(today.year, today.month)[1]
+        fim = today.replace(day=ultimo_dia)
+        return inicio, fim
 
     # Dia de fechamento no mês atual
     ultimo_dia_mes_atual = calendar.monthrange(today.year, today.month)[1]

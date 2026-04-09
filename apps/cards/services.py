@@ -84,6 +84,8 @@ def update_card(card_id, user, **kwargs):
 
     for campo, valor in kwargs.items():
         if campo in CAMPOS_PERMITIDOS:
+            if campo in ("billing_close_day", "billing_due_day") and valor is not None:
+                valor = int(valor)
             setattr(card, campo, valor)
 
     card.save()
