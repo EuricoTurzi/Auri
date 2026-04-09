@@ -127,6 +127,41 @@ class TestAssistantView:
         response = anon_client.get("/assistant/")
         assert response.status_code == 302
 
+    def test_text_view_post_nao_autenticado(self, anon_client):
+        """POST /assistant/text/ sem auth redireciona."""
+        response = anon_client.post(
+            "/assistant/text/",
+            data=json.dumps({"message": "teste"}),
+            content_type="application/json",
+        )
+        assert response.status_code == 302
+
+    def test_audio_view_post_nao_autenticado(self, anon_client):
+        """POST /assistant/audio/ sem auth redireciona."""
+        from io import BytesIO
+        audio_file = BytesIO(b"fake")
+        audio_file.name = "audio.webm"
+        response = anon_client.post("/assistant/audio/", data={"audio": audio_file})
+        assert response.status_code == 302
+
+    def test_confirm_view_nao_autenticado(self, anon_client):
+        """POST /assistant/confirm/<uuid>/ sem auth redireciona."""
+        import uuid
+        response = anon_client.post(
+            f"/assistant/confirm/{uuid.uuid4()}/",
+            content_type="application/json",
+        )
+        assert response.status_code == 302
+
+    def test_cancel_view_nao_autenticado(self, anon_client):
+        """POST /assistant/cancel/<uuid>/ sem auth redireciona."""
+        import uuid
+        response = anon_client.post(
+            f"/assistant/cancel/{uuid.uuid4()}/",
+            content_type="application/json",
+        )
+        assert response.status_code == 302
+
 
 # ---------------------------------------------------------------------------
 # TestAssistantTextView

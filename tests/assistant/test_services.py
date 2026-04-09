@@ -225,6 +225,42 @@ class TestInterpretTransaction:
             interpret_transaction(user, "Algum texto")
 
 
+    @patch("apps.assistant.services.openai.OpenAI")
+    @patch("apps.assistant.services.settings")
+    def test_interpret_transaction_entrada(self, mock_settings, mock_openai_cls, user):
+        """Mock GPT retorna type=entrada (ex: recebi 3000 de salário)."""
+        mock_settings.OPENAI_API_KEY = "fake-key"
+
+        gpt_json = {
+            "name": "Salário",
+            "amount": 3000.0,
+            "type": "entrada",
+            "category": None,
+            "date": "2024-06-01",
+            "description": "Salário mensal",
+            "card": None,
+            "missing_fields": [],
+        }
+
+        mock_message = MagicMock()
+        mock_message.content = json.dumps(gpt_json)
+        mock_choice = MagicMock()
+        mock_choice.message = mock_message
+        mock_response = MagicMock()
+        mock_response.choices = [mock_choice]
+
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_openai_cls.return_value = mock_client
+
+        resultado = interpret_transaction(user, "recebi 3000 de salário dia primeiro")
+
+        assert resultado["type"] == "entrada"
+        assert resultado["amount"] == 3000.0
+        assert resultado["name"] == "Salário"
+        assert resultado["missing_fields"] == []
+
+
 class TestBuildSystemPrompt:
     def test_build_system_prompt_inclui_categorias_e_cartoes(self, user, category, card):
         """O prompt do sistema contém os nomes das categorias e cartões do usuário."""

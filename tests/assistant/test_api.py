@@ -145,6 +145,28 @@ class TestTextAPI:
         )
         assert response.status_code == 401
 
+    def test_audio_api_sem_jwt(self, api_client):
+        """POST /api/v1/assistant/audio/ sem JWT retorna 401."""
+        response = api_client.post("/api/v1/assistant/audio/", format="multipart")
+        assert response.status_code == 401
+
+    def test_confirm_api_sem_jwt(self, api_client):
+        """POST /api/v1/assistant/confirm/<uuid>/ sem JWT retorna 401."""
+        import uuid
+        response = api_client.post(f"/api/v1/assistant/confirm/{uuid.uuid4()}/", format="json")
+        assert response.status_code == 401
+
+    def test_cancel_api_sem_jwt(self, api_client):
+        """POST /api/v1/assistant/cancel/<uuid>/ sem JWT retorna 401."""
+        import uuid
+        response = api_client.post(f"/api/v1/assistant/cancel/{uuid.uuid4()}/", format="json")
+        assert response.status_code == 401
+
+    def test_history_api_sem_jwt(self, api_client):
+        """GET /api/v1/assistant/history/ sem JWT retorna 401."""
+        response = api_client.get("/api/v1/assistant/history/")
+        assert response.status_code == 401
+
 
 # ---------------------------------------------------------------------------
 # TestAudioAPI
