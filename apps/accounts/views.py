@@ -10,7 +10,9 @@ from apps.accounts.services import change_first_access_password, register_user
 
 
 def _google_enabled():
-    return bool(getattr(settings, "GOOGLE_CLIENT_ID", ""))
+    providers = getattr(settings, "SOCIALACCOUNT_PROVIDERS", {})
+    client_id = providers.get("google", {}).get("APP", {}).get("client_id", "")
+    return bool(client_id)
 
 
 class LoginView(View):
