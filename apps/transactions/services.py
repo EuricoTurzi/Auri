@@ -1,10 +1,11 @@
 import calendar
 from datetime import timedelta
+from decimal import Decimal, ROUND_DOWN
 
 from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError
 
-from .models import RecurringConfig, Transaction
+from .models import Installment, RecurringConfig, Transaction
 
 # Campos que podem ser atualizados via update_transaction
 CAMPOS_PERMITIDOS = {
@@ -327,3 +328,85 @@ def delete_recurring_transaction(transaction_id, user):
         recurring_parent=transacao,
         is_active=True,
     ).update(is_active=False)
+
+
+# ---------------------------------------------------------------------------
+# Parcelamento
+# ---------------------------------------------------------------------------
+
+
+def create_installment_transaction(user, transaction_data, total_installments):
+    """Cria uma transação parcelada com suas parcelas individuais.
+
+    Parâmetros:
+        user                — usuário autenticado
+        transaction_data    — dict com: name, amount, type, category_id, date,
+                              description (opt), card_id (opt), due_date (opt),
+                              status (opt, padrão "pendente")
+        total_installments  — número total de parcelas (mínimo 2)
+
+    Regras:
+        - Apenas transações do tipo "saida" podem ser parceladas.
+        - O número mínimo de parcelas é 2.
+        - O valor deve ser maior que zero.
+        - O valor de cada parcela é calculado com distribuição de centavos:
+          o remainder é distribuído (1 centavo) nas primeiras parcelas.
+        - A data de vencimento de cada parcela é calculada adicionando N meses
+          à data da transação pai, respeitando o limite de dias do mês.
+
+    Retorna a transação pai com is_installment=True.
+    Levanta ValidationError para dados inválidos.
+    """
+    # Valida tipo
+    if transaction_data.get("type") != "saida":
+        raise ValidationError("Parcelamento é permitido apenas para transações de saída.")
+
+    # Valida total de parcelas
+    if not isinstance(total_installments, int) or total_installments < 2:
+        raise ValidationError("O número de parcelas deve ser no mínimo 2.")
+
+    # Valida amount antecipadamente (necessário para o cálculo antes de create_transaction)
+    amount = transaction_data.get("amount")
+    if amount is None or amount <= 0:
+        raise ValidationError("O valor da transação deve ser maior que zero.")
+
+    # Cria a transação pai via service existente
+    transacao_pai = create_transaction(user=user, **transaction_data)
+
+    # Marca como parcelada e salva
+    transacao_pai.is_installment = True
+    transacao_pai.save()
+
+    # Cálculo preciso do valor de cada parcela com distribuição de centavos
+    amount_decimal = Decimal(str(transacao_pai.amount))
+    total = Decimal(str(total_installments))
+
+    unit = (amount_decimal / total).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+    remainder = amount_decimal - (unit * total)
+    # quantidade de parcelas que recebem 1 centavo a mais
+    extra_count = int(remainder / Decimal("0.01"))
+
+    # Cria cada parcela
+    data_base = transacao_pai.date
+
+    for i in range(1, total_installments + 1):
+        # Distribui o centavo restante nas primeiras parcelas
+        parcela_amount = unit + Decimal("0.01") if i <= extra_count else unit
+
+        # Calcula due_date: data_base + i meses
+        mes = data_base.month + i
+        ano = data_base.year + (mes - 1) // 12
+        mes = (mes - 1) % 12 + 1
+        ultimo_dia = calendar.monthrange(ano, mes)[1]
+        dia = min(data_base.day, ultimo_dia)
+        due_date = data_base.replace(year=ano, month=mes, day=dia)
+
+        Installment.objects.create(
+            parent_transaction=transacao_pai,
+            installment_number=i,
+            total_installments=total_installments,
+            amount=parcela_amount,
+            due_date=due_date,
+        )
+
+    return transacao_pai
