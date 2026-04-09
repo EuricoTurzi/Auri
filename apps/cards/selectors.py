@@ -87,7 +87,7 @@ def _get_current_billing_period_spent(card, Transaction):
     total = (
         Transaction.objects.filter(
             card=card,
-            transaction_type="saida",
+            type="saida",
             date__gte=data_inicio,
             date__lte=data_fim,
         )

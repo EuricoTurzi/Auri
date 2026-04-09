@@ -441,7 +441,7 @@
         'X-CSRFToken': getCsrfToken(),
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify({ text: text }),
+      body: JSON.stringify({ message: text }),
     })
       .then(function (res) {
         if (!res.ok) throw new Error('Erro na requisição: ' + res.status);

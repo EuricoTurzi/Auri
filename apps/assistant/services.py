@@ -43,7 +43,7 @@ def transcribe_audio(audio_file) -> str:
         client = openai.OpenAI(api_key=api_key)
         response = client.audio.transcriptions.create(
             model="whisper-1",
-            file=audio_file,
+            file=(audio_file.name, audio_file.read(), audio_file.content_type or "audio/webm"),
         )
         return response.text
     except openai.AuthenticationError as exc:
