@@ -4,6 +4,7 @@ Serviços do módulo assistant.
 Responsabilidades:
 - Transcrição de áudio via OpenAI Whisper API
 - Interpretação de texto via OpenAI GPT para extração de transações
+- Criação, confirmação e cancelamento de interações do assistente
 """
 
 import json
@@ -191,3 +192,129 @@ def interpret_transaction(user, text: str) -> dict:
         data["missing_fields"] = []
 
     return data
+
+
+# ---------------------------------------------------------------------------
+# Gerenciamento de interações
+# ---------------------------------------------------------------------------
+
+
+def create_interaction(user, input_type, input_content, llm_response):
+    """
+    Cria e retorna uma AssistantInteraction com status "pendente".
+
+    Args:
+        user: Instância do usuário autenticado (CustomUser).
+        input_type (str): Tipo de entrada — "texto" ou "audio".
+        input_content (str): Texto digitado pelo usuário ou transcrição do áudio.
+        llm_response (dict): Dados extraídos pela LLM.
+
+    Returns:
+        AssistantInteraction: Interação criada com status "pendente".
+    """
+    AssistantInteraction = apps.get_model("assistant", "AssistantInteraction")
+    return AssistantInteraction.objects.create(
+        user=user,
+        input_type=input_type,
+        input_content=input_content,
+        llm_response=llm_response,
+        status="pendente",
+    )
+
+
+def confirm_interaction(interaction_id, user, adjusted_data=None):
+    """
+    Confirma uma interação pendente, criando a transação correspondente.
+
+    Busca a AssistantInteraction pelo interaction_id e verifica que pertence ao
+    usuário (isolamento de tenant). Se adjusted_data for fornecido, usa esses
+    dados para criar a transação; caso contrário, usa interaction.llm_response.
+    Atualiza o status da interação para "confirmado" e vincula a transação criada.
+
+    Args:
+        interaction_id: UUID da interação a ser confirmada.
+        user: Instância do usuário autenticado (CustomUser).
+        adjusted_data (dict | None): Dados ajustados pelo usuário. Se None,
+            usa os dados retornados pela LLM.
+
+    Returns:
+        Transaction: Transação criada.
+
+    Raises:
+        ServiceError: Se a interação não for encontrada, não pertencer ao usuário
+                      ou não estiver com status "pendente".
+    """
+    from apps.transactions.services import create_transaction
+
+    AssistantInteraction = apps.get_model("assistant", "AssistantInteraction")
+
+    try:
+        interaction = AssistantInteraction.objects.get(id=interaction_id)
+    except AssistantInteraction.DoesNotExist:
+        raise ServiceError("Interação não encontrada.")
+
+    if interaction.user != user:
+        raise ServiceError("Sem permissão para confirmar esta interação.")
+
+    if interaction.status != "pendente":
+        raise ServiceError(
+            f"Não é possível confirmar uma interação com status '{interaction.status}'."
+        )
+
+    dados = adjusted_data if adjusted_data is not None else interaction.llm_response
+
+    # Extrai category_id e card_id dos objetos aninhados, se presentes
+    category = dados.get("category")
+    card = dados.get("card")
+    category_id = category.get("id") if isinstance(category, dict) else category
+    card_id = card.get("id") if isinstance(card, dict) else card
+
+    transaction = create_transaction(
+        user=user,
+        name=dados.get("name"),
+        amount=dados.get("amount"),
+        type=dados.get("type"),
+        category_id=category_id,
+        date=dados.get("date"),
+        description=dados.get("description"),
+        card_id=card_id,
+    )
+
+    interaction.status = "confirmado"
+    interaction.transaction = transaction
+    interaction.save()
+
+    return transaction
+
+
+def cancel_interaction(interaction_id, user):
+    """
+    Cancela uma interação do assistente.
+
+    Busca a AssistantInteraction pelo interaction_id e verifica que pertence ao
+    usuário (isolamento de tenant). Marca o status como "cancelado" e salva.
+
+    Args:
+        interaction_id: UUID da interação a ser cancelada.
+        user: Instância do usuário autenticado (CustomUser).
+
+    Returns:
+        AssistantInteraction: Interação atualizada com status "cancelado".
+
+    Raises:
+        ServiceError: Se a interação não for encontrada ou não pertencer ao usuário.
+    """
+    AssistantInteraction = apps.get_model("assistant", "AssistantInteraction")
+
+    try:
+        interaction = AssistantInteraction.objects.get(id=interaction_id)
+    except AssistantInteraction.DoesNotExist:
+        raise ServiceError("Interação não encontrada.")
+
+    if interaction.user != user:
+        raise ServiceError("Sem permissão para cancelar esta interação.")
+
+    interaction.status = "cancelado"
+    interaction.save()
+
+    return interaction
