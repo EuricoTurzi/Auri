@@ -1,0 +1,649 @@
+{% extends "base.html" %}
+
+{% block title %}Assistente IA — Auri{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-dark-950 flex flex-col px-4 py-6 md:px-6 md:py-10">
+  <div class="max-w-3xl mx-auto w-full flex flex-col flex-1">
+
+    <!-- Cabeçalho -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="w-8 h-8 rounded-xl bg-gold-500/15 flex items-center justify-center">
+          <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-serif text-xl text-gold-400">Assistente Auri</h1>
+          <p class="text-xs text-white/30">Registre transações por texto ou voz</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Área principal: chat + sidebar -->
+    <div class="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+
+      <!-- Coluna esquerda: chat -->
+      <div class="flex flex-col flex-1 min-h-0">
+
+        <!-- Área de mensagens -->
+        <div id="chat-messages"
+          class="flex-1 overflow-y-auto space-y-3 p-4 rounded-2xl bg-dark-800/40 border border-white/[0.05] mb-4"
+          style="min-height: 320px; max-height: 480px;">
+
+          <!-- Mensagem de boas-vindas -->
+          <div class="flex items-start gap-2.5" id="welcome-message">
+            <div class="w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+              </svg>
+            </div>
+            <div class="max-w-sm px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-700/60 border border-white/[0.06]">
+              <p class="text-sm text-white/70 leading-relaxed">
+                Olá! Sou o assistente Auri. Você pode me dizer ou digitar uma transação, por exemplo:<br>
+                <span class="text-gold-400/80 text-xs mt-1 block">"Paguei R$ 50 no supermercado hoje"</span>
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Input de texto -->
+        <div class="relative">
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="text-input"
+              placeholder="Digite uma transação..."
+              autocomplete="off"
+              class="flex-1 px-4 py-3 pr-12 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/25 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
+            <button
+              type="button"
+              id="send-btn"
+              onclick="sendText()"
+              class="px-5 py-3 rounded-xl bg-gold-500 text-dark-950 text-sm font-semibold hover:bg-gold-400 active:bg-gold-600 transition-all duration-200 flex items-center gap-2 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+              <span class="hidden sm:inline">Enviar</span>
+            </button>
+          </div>
+
+          <!-- Indicador de carregamento -->
+          <div id="loading-indicator" class="hidden absolute right-20 top-1/2 -translate-y-1/2">
+            <div class="w-4 h-4 border-2 border-gold-400/40 border-t-gold-400 rounded-full animate-spin"></div>
+          </div>
+        </div>
+
+        <!-- Controles de gravação de áudio -->
+        <div class="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            id="record-btn"
+            onclick="startRecording()"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] text-white/50 text-xs hover:border-gold-500/30 hover:text-white/80 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+            </svg>
+            Gravar áudio
+          </button>
+
+          <button
+            type="button"
+            id="stop-btn"
+            onclick="stopRecording()"
+            class="hidden flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 transition-all duration-200">
+            <!-- Indicador pulsante -->
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
+            Parar gravação
+          </button>
+
+          <span id="recording-status" class="hidden text-xs text-red-400/70 animate-pulse">
+            Gravando...
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Coluna direita: card de preview -->
+      <div id="preview-card" class="hidden lg:w-80 w-full">
+        <div class="p-5 rounded-2xl bg-dark-800/60 border border-gold-500/20 sticky top-6">
+
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gold-400">Confirmar transação</h3>
+            <span class="text-[10px] uppercase tracking-widest text-white/30 px-2 py-0.5 rounded-full bg-gold-500/10 border border-gold-500/20">
+              Prévia
+            </span>
+          </div>
+
+          <!-- Dados da transação (modo visualização) -->
+          <div id="preview-view" class="space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] text-white/30 uppercase tracking-wider">Nome</span>
+              <span id="preview-name" class="text-sm text-white/80 font-medium"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] text-white/30 uppercase tracking-wider">Valor</span>
+              <span id="preview-amount" class="text-sm font-semibold text-emerald-400"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] text-white/30 uppercase tracking-wider">Tipo</span>
+              <span id="preview-type" class="text-sm text-white/70"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] text-white/30 uppercase tracking-wider">Categoria</span>
+              <span id="preview-category" class="text-sm text-white/70"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] text-white/30 uppercase tracking-wider">Data</span>
+              <span id="preview-date" class="text-sm text-white/70"></span>
+            </div>
+            <div id="preview-card-row" class="hidden flex justify-between items-center">
+              <span class="text-[11px] text-white/30 uppercase tracking-wider">Cartão</span>
+              <span id="preview-card-name" class="text-sm text-white/70"></span>
+            </div>
+            <div id="preview-description-row" class="hidden">
+              <span class="text-[11px] text-white/30 uppercase tracking-wider block mb-1">Descrição</span>
+              <p id="preview-description" class="text-xs text-white/50 leading-relaxed"></p>
+            </div>
+          </div>
+
+          <!-- Divisor -->
+          <div class="my-4 border-t border-white/[0.05]"></div>
+
+          <!-- Botão editar inline -->
+          <button
+            type="button"
+            id="edit-toggle-btn"
+            onclick="toggleEditMode()"
+            class="w-full mb-3 py-2 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-white/15 hover:text-white/70 transition-all">
+            Editar campos
+          </button>
+
+          <!-- Formulário de edição inline (oculto por padrão) -->
+          <div id="edit-form" class="hidden space-y-3 mb-4">
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Nome</label>
+              <input type="text" id="edit-name"
+                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all">
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Valor (R$)</label>
+              <input type="number" id="edit-amount" step="0.01" min="0.01"
+                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all">
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Tipo</label>
+              <select id="edit-type"
+                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+                <option value="saida" class="bg-dark-800">Saída</option>
+                <option value="entrada" class="bg-dark-800">Entrada</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Data</label>
+              <input type="date" id="edit-date"
+                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all">
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Descrição</label>
+              <textarea id="edit-description" rows="2"
+                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all resize-none"></textarea>
+            </div>
+            <button
+              type="button"
+              onclick="saveEdits()"
+              class="w-full py-2 rounded-xl bg-dark-700/60 border border-gold-500/20 text-gold-400 text-xs font-semibold hover:bg-gold-500/10 transition-all">
+              Salvar edição
+            </button>
+          </div>
+
+          <!-- Botões de ação -->
+          <div class="flex gap-2">
+            <button
+              type="button"
+              id="confirm-btn"
+              onclick="confirmTransaction()"
+              class="flex-1 py-2.5 rounded-xl bg-gold-500 text-dark-950 text-xs font-semibold hover:bg-gold-400 active:bg-gold-600 transition-all duration-200">
+              Confirmar
+            </button>
+            <button
+              type="button"
+              id="cancel-btn"
+              onclick="cancelTransaction()"
+              class="px-4 py-2.5 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-red-500/20 hover:text-red-400/70 transition-all duration-200">
+              Cancelar
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+(function () {
+  'use strict';
+
+  // ─── Estado global ──────────────────────────────────────────────
+  var currentInteractionId = null;
+  var currentPreviewData = null;
+  var mediaRecorder = null;
+  var audioChunks = [];
+
+  // ─── Helpers de CSRF ────────────────────────────────────────────
+  function getCsrfToken() {
+    var name = 'csrftoken';
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = cookies[i].trim();
+      if (cookie.startsWith(name + '=')) {
+        return decodeURIComponent(cookie.substring(name.length + 1));
+      }
+    }
+    // Fallback: ler do input hidden do formulário (se disponível)
+    var tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    return tokenInput ? tokenInput.value : '';
+  }
+
+  // ─── Área de chat ────────────────────────────────────────────────
+  function addMessage(text, sender) {
+    var container = document.getElementById('chat-messages');
+    var isUser = sender === 'user';
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 'flex items-start gap-2.5' + (isUser ? ' justify-end' : '');
+
+    if (!isUser) {
+      var avatar = document.createElement('div');
+      avatar.className = 'w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5';
+      avatar.innerHTML = '<svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>';
+      wrapper.appendChild(avatar);
+    }
+
+    var bubble = document.createElement('div');
+    bubble.className = isUser
+      ? 'max-w-sm px-4 py-3 rounded-2xl rounded-tr-sm bg-gold-500/15 border border-gold-500/20'
+      : 'max-w-sm px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-700/60 border border-white/[0.06]';
+
+    var p = document.createElement('p');
+    p.className = 'text-sm leading-relaxed ' + (isUser ? 'text-white/80' : 'text-white/70');
+    p.textContent = text;
+    bubble.appendChild(p);
+    wrapper.appendChild(bubble);
+    container.appendChild(wrapper);
+
+    // Scroll para o fim
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function addErrorMessage(text) {
+    var container = document.getElementById('chat-messages');
+    var div = document.createElement('div');
+    div.className = 'flex justify-center';
+    var inner = document.createElement('div');
+    inner.className = 'px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400';
+    inner.textContent = text;
+    div.appendChild(inner);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // ─── Processamento de resposta ───────────────────────────────────
+  function handleResponse(data) {
+    if (!data) return;
+
+    if (data.status === 'preview') {
+      currentInteractionId = data.interaction_id || null;
+      currentPreviewData = data.transaction || {};
+      showPreviewCard(currentPreviewData);
+      addMessage('Encontrei uma transação. Confira o painel ao lado e confirme.', 'assistant');
+
+    } else if (data.status === 'missing') {
+      var question = data.question || data.message || 'Preciso de mais informações. Pode detalhar?';
+      addMessage(question, 'assistant');
+
+    } else if (data.status === 'error') {
+      var msg = data.message || 'Ocorreu um erro ao processar sua mensagem.';
+      addErrorMessage(msg);
+
+    } else if (data.status === 'confirmed') {
+      hidePreviewCard();
+      addMessage('Transação registrada com sucesso!', 'assistant');
+      currentInteractionId = null;
+      currentPreviewData = null;
+
+    } else if (data.status === 'cancelled') {
+      hidePreviewCard();
+      addMessage('Transação cancelada.', 'assistant');
+      currentInteractionId = null;
+      currentPreviewData = null;
+
+    } else if (data.message) {
+      addMessage(data.message, 'assistant');
+    }
+  }
+
+  // ─── Preview card ─────────────────────────────────────────────────
+  function showPreviewCard(tx) {
+    var card = document.getElementById('preview-card');
+    card.classList.remove('hidden');
+
+    document.getElementById('preview-name').textContent = tx.name || '—';
+
+    var amount = parseFloat(tx.amount || 0);
+    var amountEl = document.getElementById('preview-amount');
+    var prefix = tx.type === 'entrada' ? '+' : '-';
+    amountEl.textContent = prefix + ' R$ ' + amount.toFixed(2).replace('.', ',');
+    amountEl.className = 'text-sm font-semibold ' + (tx.type === 'entrada' ? 'text-emerald-400' : 'text-red-400');
+
+    var typeLabels = { 'entrada': 'Entrada', 'saida': 'Saída' };
+    document.getElementById('preview-type').textContent = typeLabels[tx.type] || tx.type || '—';
+    document.getElementById('preview-category').textContent = tx.category || '—';
+    document.getElementById('preview-date').textContent = tx.date || '—';
+
+    var cardRow = document.getElementById('preview-card-row');
+    if (tx.card) {
+      document.getElementById('preview-card-name').textContent = tx.card;
+      cardRow.classList.remove('hidden');
+    } else {
+      cardRow.classList.add('hidden');
+    }
+
+    var descRow = document.getElementById('preview-description-row');
+    if (tx.description) {
+      document.getElementById('preview-description').textContent = tx.description;
+      descRow.classList.remove('hidden');
+    } else {
+      descRow.classList.add('hidden');
+    }
+
+    // Preencher campos de edição
+    document.getElementById('edit-name').value = tx.name || '';
+    document.getElementById('edit-amount').value = amount || '';
+    document.getElementById('edit-type').value = tx.type || 'saida';
+    document.getElementById('edit-date').value = tx.date || '';
+    document.getElementById('edit-description').value = tx.description || '';
+  }
+
+  function hidePreviewCard() {
+    var card = document.getElementById('preview-card');
+    card.classList.add('hidden');
+    // Reset edit mode
+    document.getElementById('edit-form').classList.add('hidden');
+    document.getElementById('preview-view').classList.remove('hidden');
+    document.getElementById('edit-toggle-btn').textContent = 'Editar campos';
+  }
+
+  // ─── Toggle modo edição ───────────────────────────────────────────
+  window.toggleEditMode = function () {
+    var editForm = document.getElementById('edit-form');
+    var previewView = document.getElementById('preview-view');
+    var btn = document.getElementById('edit-toggle-btn');
+
+    var isEditing = !editForm.classList.contains('hidden');
+    if (isEditing) {
+      editForm.classList.add('hidden');
+      previewView.classList.remove('hidden');
+      btn.textContent = 'Editar campos';
+    } else {
+      editForm.classList.remove('hidden');
+      previewView.classList.add('hidden');
+      btn.textContent = 'Cancelar edição';
+    }
+  };
+
+  // ─── Salvar edições ────────────────────────────────────────────────
+  window.saveEdits = function () {
+    if (!currentPreviewData) return;
+
+    currentPreviewData.name = document.getElementById('edit-name').value;
+    currentPreviewData.amount = document.getElementById('edit-amount').value;
+    currentPreviewData.type = document.getElementById('edit-type').value;
+    currentPreviewData.date = document.getElementById('edit-date').value;
+    currentPreviewData.description = document.getElementById('edit-description').value;
+
+    showPreviewCard(currentPreviewData);
+
+    // Fechar modo edição
+    document.getElementById('edit-form').classList.add('hidden');
+    document.getElementById('preview-view').classList.remove('hidden');
+    document.getElementById('edit-toggle-btn').textContent = 'Editar campos';
+  };
+
+  // ─── Envio de texto ────────────────────────────────────────────────
+  window.sendText = function () {
+    var input = document.getElementById('text-input');
+    var text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, 'user');
+    input.value = '';
+
+    setLoading(true);
+
+    fetch('{% url "assistant:text" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ text: text }),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Erro na requisição: ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        handleResponse(data);
+      })
+      .catch(function (err) {
+        addErrorMessage('Erro ao enviar mensagem. Tente novamente.');
+        console.error(err);
+      })
+      .finally(function () {
+        setLoading(false);
+      });
+  };
+
+  // ─── Envio de áudio ────────────────────────────────────────────────
+  window.sendAudio = function (blob) {
+    addMessage('[Áudio enviado]', 'user');
+    setLoading(true);
+
+    var formData = new FormData();
+    formData.append('audio', blob, 'recording.webm');
+
+    fetch('{% url "assistant:audio" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: formData,
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Erro na requisição: ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        handleResponse(data);
+      })
+      .catch(function (err) {
+        addErrorMessage('Erro ao enviar áudio. Tente novamente.');
+        console.error(err);
+      })
+      .finally(function () {
+        setLoading(false);
+      });
+  };
+
+  // ─── Confirmar transação ────────────────────────────────────────────
+  window.confirmTransaction = function () {
+    if (!currentInteractionId) {
+      addErrorMessage('ID da interação não encontrado.');
+      return;
+    }
+
+    var adjustedData = currentPreviewData ? Object.assign({}, currentPreviewData) : {};
+
+    setConfirmLoading(true);
+
+    fetch('{% url "assistant:confirm" "00000000-0000-0000-0000-000000000000" %}'.replace('00000000-0000-0000-0000-000000000000', currentInteractionId), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(adjustedData),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Erro na requisição: ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        handleResponse(data);
+      })
+      .catch(function (err) {
+        addErrorMessage('Erro ao confirmar transação. Tente novamente.');
+        console.error(err);
+      })
+      .finally(function () {
+        setConfirmLoading(false);
+      });
+  };
+
+  // ─── Cancelar transação ─────────────────────────────────────────────
+  window.cancelTransaction = function () {
+    if (!currentInteractionId) {
+      hidePreviewCard();
+      return;
+    }
+
+    fetch('{% url "assistant:cancel" "00000000-0000-0000-0000-000000000000" %}'.replace('00000000-0000-0000-0000-000000000000', currentInteractionId), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({}),
+    })
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        handleResponse(data);
+      })
+      .catch(function () {
+        hidePreviewCard();
+        addMessage('Transação cancelada.', 'assistant');
+        currentInteractionId = null;
+        currentPreviewData = null;
+      });
+  };
+
+  // ─── Gravação de áudio ──────────────────────────────────────────────
+  window.startRecording = function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      addErrorMessage('Seu navegador não suporta gravação de áudio.');
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function (stream) {
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.addEventListener('dataavailable', function (e) {
+          if (e.data.size > 0) {
+            audioChunks.push(e.data);
+          }
+        });
+
+        mediaRecorder.addEventListener('stop', function () {
+          var blob = new Blob(audioChunks, { type: 'audio/webm' });
+          sendAudio(blob);
+          // Parar todas as tracks do stream
+          stream.getTracks().forEach(function (track) { track.stop(); });
+        });
+
+        mediaRecorder.start();
+        setRecordingState(true);
+      })
+      .catch(function (err) {
+        addErrorMessage('Não foi possível acessar o microfone. Verifique as permissões.');
+        console.error(err);
+      });
+  };
+
+  window.stopRecording = function () {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    setRecordingState(false);
+  };
+
+  // ─── Estados visuais ────────────────────────────────────────────────
+  function setLoading(active) {
+    var btn = document.getElementById('send-btn');
+    var indicator = document.getElementById('loading-indicator');
+    if (btn) btn.disabled = active;
+    if (indicator) indicator.classList.toggle('hidden', !active);
+  }
+
+  function setConfirmLoading(active) {
+    var btn = document.getElementById('confirm-btn');
+    var cancelBtn = document.getElementById('cancel-btn');
+    if (btn) {
+      btn.disabled = active;
+      btn.textContent = active ? 'Confirmando...' : 'Confirmar';
+    }
+    if (cancelBtn) cancelBtn.disabled = active;
+  }
+
+  function setRecordingState(recording) {
+    var recordBtn = document.getElementById('record-btn');
+    var stopBtn = document.getElementById('stop-btn');
+    var status = document.getElementById('recording-status');
+
+    if (recording) {
+      recordBtn.classList.add('hidden');
+      stopBtn.classList.remove('hidden');
+      status.classList.remove('hidden');
+    } else {
+      recordBtn.classList.remove('hidden');
+      stopBtn.classList.add('hidden');
+      status.classList.add('hidden');
+    }
+  }
+
+  // ─── Enviar com Enter ────────────────────────────────────────────────
+  var textInput = document.getElementById('text-input');
+  if (textInput) {
+    textInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendText();
+      }
+    });
+  }
+
+})();
+</script>
+{% endblock %}
+{% endblock %}
