@@ -1,7 +1,10 @@
+import calendar
+from datetime import timedelta
+
 from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError
 
-from .models import Transaction
+from .models import RecurringConfig, Transaction
 
 # Campos que podem ser atualizados via update_transaction
 CAMPOS_PERMITIDOS = {
@@ -197,3 +200,144 @@ def update_status(transaction_id, user, status):
     transacao.status = status
     transacao.save()
     return transacao
+
+
+# ---------------------------------------------------------------------------
+# Recorrência
+# ---------------------------------------------------------------------------
+
+FREQUENCIAS_VALIDAS = {"semanal", "quinzenal", "mensal"}
+
+
+def _proxima_data(data_base, frequencia, iteracao):
+    """Calcula a próxima data de ocorrência conforme a frequência.
+
+    - semanal:   +7 dias por iteração
+    - quinzenal: +14 dias por iteração
+    - mensal:    mesmo dia no mês seguinte, respeitando o limite de dias do mês
+    """
+    if frequencia == "semanal":
+        return data_base + timedelta(weeks=iteracao)
+    if frequencia == "quinzenal":
+        return data_base + timedelta(days=14 * iteracao)
+
+    # mensal — avança mês a mês a partir da data original
+    mes = data_base.month + iteracao
+    ano = data_base.year + (mes - 1) // 12
+    mes = (mes - 1) % 12 + 1
+    ultimo_dia = calendar.monthrange(ano, mes)[1]
+    dia = min(data_base.day, ultimo_dia)
+    return data_base.replace(year=ano, month=mes, day=dia)
+
+
+def create_recurring_transaction(user, transaction_data, frequency):
+    """Cria uma transação recorrente com suas ocorrências futuras (12 meses).
+
+    Parâmetros:
+        user            — usuário autenticado
+        transaction_data — dict com: name, amount, type, category_id, date,
+                           description (opt), card_id (opt), due_date (opt),
+                           status (opt, padrão "pendente")
+        frequency       — "semanal", "quinzenal" ou "mensal"
+
+    Retorna a transação pai (original).
+    Levanta ValidationError para frequência inválida.
+    """
+    if frequency not in FREQUENCIAS_VALIDAS:
+        raise ValidationError(
+            f"Frequência inválida. Escolha entre: {', '.join(sorted(FREQUENCIAS_VALIDAS))}."
+        )
+
+    # Cria a transação pai usando a função existente (sem is_recurring ainda)
+    transacao_pai = create_transaction(user=user, **transaction_data)
+
+    # Marca como recorrente e salva
+    transacao_pai.is_recurring = True
+    transacao_pai.save()
+
+    # Cria a configuração de recorrência
+    RecurringConfig.objects.create(transaction=transacao_pai, frequency=frequency)
+
+    # Gera ocorrências futuras para os próximos 12 meses
+    data_base = transacao_pai.date
+    from datetime import date as date_type
+
+    if hasattr(data_base, "date"):
+        # Garante que seja um objeto date puro, não datetime
+        data_base = data_base.date() if hasattr(data_base, "date") and callable(data_base.date) else data_base
+
+    # Limite: 12 meses a partir da data original
+    mes_limite = data_base.month + 12
+    ano_limite = data_base.year + (mes_limite - 1) // 12
+    mes_limite = (mes_limite - 1) % 12 + 1
+    ultimo_dia_limite = calendar.monthrange(ano_limite, mes_limite)[1]
+    from datetime import date as dt_date
+    data_limite = dt_date(ano_limite, mes_limite, ultimo_dia_limite)
+
+    iteracao = 1
+    while True:
+        proxima = _proxima_data(data_base, frequency, iteracao)
+        if proxima > data_limite:
+            break
+
+        Transaction.objects.create(
+            user=user,
+            name=transacao_pai.name,
+            description=transacao_pai.description,
+            amount=transacao_pai.amount,
+            type=transacao_pai.type,
+            status=transacao_pai.status,
+            category=transacao_pai.category,
+            card=transacao_pai.card,
+            date=proxima,
+            due_date=None,
+            is_recurring=True,
+        )
+        iteracao += 1
+
+    return transacao_pai
+
+
+def delete_recurring_transaction(transaction_id, user):
+    """Exclui uma transação recorrente e suas ocorrências futuras.
+
+    - Valida ownership da transação pai.
+    - Valida que a transação é de fato recorrente (tem RecurringConfig).
+    - Hard-delete no RecurringConfig.
+    - Soft-delete (is_active=False) na transação pai e em todas as ocorrências
+      futuras com as mesmas características (nome, valor, categoria).
+
+    Levanta PermissionError para falhas de ownership/não encontrado.
+    Levanta ValidationError se a transação não for recorrente.
+    """
+    try:
+        transacao = Transaction.objects.get(id=transaction_id, is_active=True)
+    except Transaction.DoesNotExist:
+        raise PermissionError("Transação não encontrada.")
+
+    if transacao.user != user:
+        raise PermissionError("Sem permissão para excluir esta transação.")
+
+    # Valida que é uma transação recorrente
+    try:
+        config = transacao.recurring_config
+    except RecurringConfig.DoesNotExist:
+        raise ValidationError("Esta transação não possui configuração de recorrência.")
+
+    # Hard-delete na configuração de recorrência
+    config.delete()
+
+    # Soft-delete na transação pai
+    transacao.is_active = False
+    transacao.save()
+
+    # Soft-delete em todas as ocorrências futuras com as mesmas características
+    Transaction.objects.filter(
+        user=user,
+        is_recurring=True,
+        is_active=True,
+        name=transacao.name,
+        amount=transacao.amount,
+        category=transacao.category,
+        date__gte=transacao.date,
+    ).update(is_active=False)
