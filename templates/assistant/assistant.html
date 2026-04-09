@@ -24,11 +24,8 @@
       </div>
     </div>
 
-    <!-- Área principal: chat + sidebar -->
-    <div class="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
-
-      <!-- Coluna esquerda: chat -->
-      <div class="flex flex-col flex-1 min-h-0">
+    <!-- Área principal: chat -->
+    <div class="flex flex-col flex-1 min-h-0">
 
         <!-- Área de mensagens -->
         <div id="chat-messages"
@@ -111,122 +108,6 @@
           </span>
         </div>
 
-      </div>
-
-      <!-- Coluna direita: card de preview -->
-      <div id="preview-card" class="hidden lg:w-80 w-full">
-        <div class="p-5 rounded-2xl bg-dark-800/60 border border-gold-500/20 sticky top-6">
-
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gold-400">Confirmar transação</h3>
-            <span class="text-[10px] uppercase tracking-widest text-white/30 px-2 py-0.5 rounded-full bg-gold-500/10 border border-gold-500/20">
-              Prévia
-            </span>
-          </div>
-
-          <!-- Dados da transação (modo visualização) -->
-          <div id="preview-view" class="space-y-2.5">
-            <div class="flex justify-between items-center">
-              <span class="text-[11px] text-white/30 uppercase tracking-wider">Nome</span>
-              <span id="preview-name" class="text-sm text-white/80 font-medium"></span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-[11px] text-white/30 uppercase tracking-wider">Valor</span>
-              <span id="preview-amount" class="text-sm font-semibold text-emerald-400"></span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-[11px] text-white/30 uppercase tracking-wider">Tipo</span>
-              <span id="preview-type" class="text-sm text-white/70"></span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-[11px] text-white/30 uppercase tracking-wider">Categoria</span>
-              <span id="preview-category" class="text-sm text-white/70"></span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-[11px] text-white/30 uppercase tracking-wider">Data</span>
-              <span id="preview-date" class="text-sm text-white/70"></span>
-            </div>
-            <div id="preview-card-row" class="hidden flex justify-between items-center">
-              <span class="text-[11px] text-white/30 uppercase tracking-wider">Cartão</span>
-              <span id="preview-card-name" class="text-sm text-white/70"></span>
-            </div>
-            <div id="preview-description-row" class="hidden">
-              <span class="text-[11px] text-white/30 uppercase tracking-wider block mb-1">Descrição</span>
-              <p id="preview-description" class="text-xs text-white/50 leading-relaxed"></p>
-            </div>
-          </div>
-
-          <!-- Divisor -->
-          <div class="my-4 border-t border-white/[0.05]"></div>
-
-          <!-- Botão editar inline -->
-          <button
-            type="button"
-            id="edit-toggle-btn"
-            onclick="toggleEditMode()"
-            class="w-full mb-3 py-2 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-white/15 hover:text-white/70 transition-all">
-            Editar campos
-          </button>
-
-          <!-- Formulário de edição inline (oculto por padrão) -->
-          <div id="edit-form" class="hidden space-y-3 mb-4">
-            <div>
-              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Nome</label>
-              <input type="text" id="edit-name"
-                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all">
-            </div>
-            <div>
-              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Valor (R$)</label>
-              <input type="number" id="edit-amount" step="0.01" min="0.01"
-                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all">
-            </div>
-            <div>
-              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Tipo</label>
-              <select id="edit-type"
-                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
-                <option value="saida" class="bg-dark-800">Saída</option>
-                <option value="entrada" class="bg-dark-800">Entrada</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Data</label>
-              <input type="date" id="edit-date"
-                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all">
-            </div>
-            <div>
-              <label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Descrição</label>
-              <textarea id="edit-description" rows="2"
-                class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all resize-none"></textarea>
-            </div>
-            <button
-              type="button"
-              onclick="saveEdits()"
-              class="w-full py-2 rounded-xl bg-dark-700/60 border border-gold-500/20 text-gold-400 text-xs font-semibold hover:bg-gold-500/10 transition-all">
-              Salvar edição
-            </button>
-          </div>
-
-          <!-- Botões de ação -->
-          <div class="flex gap-2">
-            <button
-              type="button"
-              id="confirm-btn"
-              onclick="confirmTransaction()"
-              class="flex-1 py-2.5 rounded-xl bg-gold-500 text-dark-950 text-xs font-semibold hover:bg-gold-400 active:bg-gold-600 transition-all duration-200">
-              Confirmar
-            </button>
-            <button
-              type="button"
-              id="cancel-btn"
-              onclick="cancelTransaction()"
-              class="px-4 py-2.5 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-red-500/20 hover:text-red-400/70 transition-all duration-200">
-              Cancelar
-            </button>
-          </div>
-
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
@@ -306,21 +187,32 @@
 
     if (data.status === 'preview') {
       currentInteractionId = data.interaction_id || null;
-      currentPreviewData = data.transaction || {};
+      currentPreviewData = data.data || {};
+      var msg = data.assistant_message || 'Confira os dados abaixo e confirme.';
+      addMessage(msg, 'assistant');
       showPreviewCard(currentPreviewData);
-      addMessage('Encontrei uma transação. Confira o painel ao lado e confirme.', 'assistant');
+
+    } else if (data.status === 'suggest_category') {
+      currentInteractionId = data.interaction_id || null;
+      currentPreviewData = data.data || {};
+      var suggestMsg = data.assistant_message || 'Não encontrei uma categoria para essa transação.';
+      addMessage(suggestMsg, 'assistant');
+      var suggestedName = data.suggested_category_name || '';
+      if (suggestedName) {
+        addSuggestCategoryCard(suggestedName, data.interaction_id);
+      }
 
     } else if (data.status === 'missing') {
       var question = data.question || data.message || 'Preciso de mais informações. Pode detalhar?';
       addMessage(question, 'assistant');
 
     } else if (data.status === 'error') {
-      var msg = data.message || 'Ocorreu um erro ao processar sua mensagem.';
-      addErrorMessage(msg);
+      var errMsg = data.message || 'Ocorreu um erro ao processar sua mensagem.';
+      addErrorMessage(errMsg);
 
     } else if (data.status === 'confirmed') {
       hidePreviewCard();
-      addMessage('Transação registrada com sucesso!', 'assistant');
+      addMessage('Transação registrada com sucesso! 🎉', 'assistant');
       currentInteractionId = null;
       currentPreviewData = null;
 
@@ -335,62 +227,142 @@
     }
   }
 
-  // ─── Preview card ─────────────────────────────────────────────────
+  // ─── Preview card (renderizado dentro do chat) ────────────────────
   function showPreviewCard(tx) {
-    var card = document.getElementById('preview-card');
-    card.classList.remove('hidden');
+    // Remove card anterior se existir
+    var existing = document.getElementById('chat-preview-card');
+    if (existing) existing.remove();
 
-    document.getElementById('preview-name').textContent = tx.name || '—';
-
+    var container = document.getElementById('chat-messages');
     var amount = parseFloat(tx.amount || 0);
-    var amountEl = document.getElementById('preview-amount');
     var prefix = tx.type === 'entrada' ? '+' : '-';
-    amountEl.textContent = prefix + ' R$ ' + amount.toFixed(2).replace('.', ',');
-    amountEl.className = 'text-sm font-semibold ' + (tx.type === 'entrada' ? 'text-emerald-400' : 'text-red-400');
+    var amountClass = tx.type === 'entrada' ? 'text-emerald-400' : 'text-red-400';
+    var typeLabels = { 'entrada': 'Entrada', 'saida': 'Saída', 'saída': 'Saída' };
+    var categoryName = (tx.category && tx.category.name) ? tx.category.name : '—';
+    var cardName = (tx.card && tx.card.name) ? tx.card.name : '';
 
-    var typeLabels = { 'entrada': 'Entrada', 'saida': 'Saída' };
-    document.getElementById('preview-type').textContent = typeLabels[tx.type] || tx.type || '—';
-    document.getElementById('preview-category').textContent = tx.category || '—';
-    document.getElementById('preview-date').textContent = tx.date || '—';
+    var wrapper = document.createElement('div');
+    wrapper.id = 'chat-preview-card';
+    wrapper.className = 'flex items-start gap-2.5';
 
-    var cardRow = document.getElementById('preview-card-row');
-    if (tx.card) {
-      document.getElementById('preview-card-name').textContent = tx.card;
-      cardRow.classList.remove('hidden');
-    } else {
-      cardRow.classList.add('hidden');
-    }
+    var avatar = document.createElement('div');
+    avatar.className = 'w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5';
+    avatar.innerHTML = '<svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>';
+    wrapper.appendChild(avatar);
 
-    var descRow = document.getElementById('preview-description-row');
-    if (tx.description) {
-      document.getElementById('preview-description').textContent = tx.description;
-      descRow.classList.remove('hidden');
-    } else {
-      descRow.classList.add('hidden');
-    }
+    var card = document.createElement('div');
+    card.className = 'flex-1 p-4 rounded-2xl rounded-tl-sm bg-dark-800/60 border border-gold-500/20';
 
-    // Preencher campos de edição
-    document.getElementById('edit-name').value = tx.name || '';
-    document.getElementById('edit-amount').value = amount || '';
-    document.getElementById('edit-type').value = tx.type || 'saida';
-    document.getElementById('edit-date').value = tx.date || '';
-    document.getElementById('edit-description').value = tx.description || '';
+    var cardRowHTML = cardName
+      ? '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Cartão</span><span class="text-xs text-white/70">' + cardName + '</span></div>'
+      : '';
+    var descRowHTML = tx.description
+      ? '<div><span class="text-[11px] text-white/30 uppercase tracking-wider block mb-1">Descrição</span><p class="text-xs text-white/50">' + tx.description + '</p></div>'
+      : '';
+
+    card.innerHTML =
+      '<div class="flex items-center justify-between mb-3">' +
+        '<h3 class="text-xs font-semibold text-gold-400 uppercase tracking-wider">Confirmar transação</h3>' +
+        '<span class="text-[10px] text-white/30 px-2 py-0.5 rounded-full bg-gold-500/10 border border-gold-500/20">Prévia</span>' +
+      '</div>' +
+      '<div id="preview-view" class="space-y-1.5">' +
+        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Nome</span><span id="preview-name" class="text-xs text-white/80 font-medium">' + (tx.name || '—') + '</span></div>' +
+        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Valor</span><span id="preview-amount" class="text-xs font-semibold ' + amountClass + '">' + prefix + ' R$ ' + amount.toFixed(2).replace('.', ',') + '</span></div>' +
+        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Tipo</span><span id="preview-type" class="text-xs text-white/70">' + (typeLabels[tx.type] || tx.type || '—') + '</span></div>' +
+        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Categoria</span><span id="preview-category" class="text-xs text-white/70">' + categoryName + '</span></div>' +
+        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Data</span><span id="preview-date" class="text-xs text-white/70">' + (tx.date || '—') + '</span></div>' +
+        cardRowHTML + descRowHTML +
+      '</div>' +
+      '<div id="edit-form" class="hidden space-y-2.5 mt-3">' +
+        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Nome</label><input type="text" id="edit-name" value="' + (tx.name || '') + '" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
+        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Valor (R$)</label><input type="number" id="edit-amount" step="0.01" min="0.01" value="' + (amount || '') + '" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
+        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Tipo</label><select id="edit-type" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"><option value="saida"' + (tx.type !== 'entrada' ? ' selected' : '') + '>Saída</option><option value="entrada"' + (tx.type === 'entrada' ? ' selected' : '') + '>Entrada</option></select></div>' +
+        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Data</label><input type="date" id="edit-date" value="' + (tx.date || '') + '" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
+        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Descrição</label><textarea id="edit-description" rows="2" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all resize-none">' + (tx.description || '') + '</textarea></div>' +
+        '<button type="button" onclick="saveEdits()" class="w-full py-2 rounded-xl bg-dark-700/60 border border-gold-500/20 text-gold-400 text-xs font-semibold hover:bg-gold-500/10 transition-all">Salvar edição</button>' +
+      '</div>' +
+      '<div class="my-3 border-t border-white/[0.05]"></div>' +
+      '<button type="button" id="edit-toggle-btn" onclick="toggleEditMode()" class="w-full mb-2 py-2 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-white/15 hover:text-white/70 transition-all">Editar campos</button>' +
+      '<div class="flex gap-2">' +
+        '<button type="button" id="confirm-btn" onclick="confirmTransaction()" class="flex-1 py-2.5 rounded-xl bg-gold-500 text-dark-950 text-xs font-semibold hover:bg-gold-400 active:bg-gold-600 transition-all">Confirmar</button>' +
+        '<button type="button" id="cancel-btn" onclick="cancelTransaction()" class="px-4 py-2.5 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-red-500/20 hover:text-red-400/70 transition-all">Cancelar</button>' +
+      '</div>';
+
+    wrapper.appendChild(card);
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
   }
 
   function hidePreviewCard() {
-    var card = document.getElementById('preview-card');
-    card.classList.add('hidden');
-    // Reset edit mode
-    document.getElementById('edit-form').classList.add('hidden');
-    document.getElementById('preview-view').classList.remove('hidden');
-    document.getElementById('edit-toggle-btn').textContent = 'Editar campos';
+    var existing = document.getElementById('chat-preview-card');
+    if (existing) existing.remove();
+    var suggestCard = document.getElementById('chat-suggest-category');
+    if (suggestCard) suggestCard.remove();
   }
+
+  // ─── Sugestão de categoria ────────────────────────────────────────
+  function addSuggestCategoryCard(categoryName, interactionId) {
+    var container = document.getElementById('chat-messages');
+    var wrapper = document.createElement('div');
+    wrapper.id = 'chat-suggest-category';
+    wrapper.className = 'flex items-start gap-2.5';
+
+    var avatar = document.createElement('div');
+    avatar.className = 'w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5';
+    avatar.innerHTML = '<svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>';
+    wrapper.appendChild(avatar);
+
+    var card = document.createElement('div');
+    card.className = 'max-w-sm p-4 rounded-2xl rounded-tl-sm bg-dark-800/60 border border-white/[0.06]';
+    card.innerHTML =
+      '<p class="text-sm text-white/70 mb-3">Deseja criar a categoria <strong class="text-gold-400">"' + categoryName + '"</strong>?</p>' +
+      '<div class="flex gap-2">' +
+        '<button type="button" onclick="createSuggestedCategory(\'' + categoryName.replace(/'/g, "\\'") + '\', \'' + interactionId + '\')" class="flex-1 py-2 rounded-xl bg-gold-500 text-dark-950 text-xs font-semibold hover:bg-gold-400 transition-all">Criar categoria</button>' +
+        '<button type="button" onclick="skipCategory()" class="px-4 py-2 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-white/15 hover:text-white/70 transition-all">Pular</button>' +
+      '</div>';
+    wrapper.appendChild(card);
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  window.createSuggestedCategory = function (categoryName, interactionId) {
+    var suggestCard = document.getElementById('chat-suggest-category');
+    if (suggestCard) suggestCard.remove();
+
+    setLoading(true);
+    fetch('{% url "assistant:create_category" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ category_name: categoryName, interaction_id: interactionId }),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Erro na requisição: ' + res.status);
+        return res.json();
+      })
+      .then(function (data) { handleResponse(data); })
+      .catch(function () { addErrorMessage('Erro ao criar categoria. Tente novamente.'); })
+      .finally(function () { setLoading(false); });
+  };
+
+  window.skipCategory = function () {
+    var suggestCard = document.getElementById('chat-suggest-category');
+    if (suggestCard) suggestCard.remove();
+    if (currentPreviewData) {
+      addMessage('Tudo bem! Vou registrar sem categoria.', 'assistant');
+      showPreviewCard(currentPreviewData);
+    }
+  };
 
   // ─── Toggle modo edição ───────────────────────────────────────────
   window.toggleEditMode = function () {
     var editForm = document.getElementById('edit-form');
     var previewView = document.getElementById('preview-view');
     var btn = document.getElementById('edit-toggle-btn');
+    if (!editForm) return;
 
     var isEditing = !editForm.classList.contains('hidden');
     if (isEditing) {
@@ -415,11 +387,6 @@
     currentPreviewData.description = document.getElementById('edit-description').value;
 
     showPreviewCard(currentPreviewData);
-
-    // Fechar modo edição
-    document.getElementById('edit-form').classList.add('hidden');
-    document.getElementById('preview-view').classList.remove('hidden');
-    document.getElementById('edit-toggle-btn').textContent = 'Editar campos';
   };
 
   // ─── Envio de texto ────────────────────────────────────────────────

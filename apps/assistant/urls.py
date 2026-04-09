@@ -8,6 +8,7 @@ from apps.assistant.views import (
     AssistantAudioView,
     AssistantCancelView,
     AssistantConfirmView,
+    AssistantCreateCategoryView,
     AssistantTextView,
     AssistantView,
 )
@@ -20,4 +21,5 @@ urlpatterns = [
     path("assistant/audio/", AssistantAudioView.as_view(), name="audio"),
     path("assistant/confirm/<uuid:pk>/", AssistantConfirmView.as_view(), name="confirm"),
     path("assistant/cancel/<uuid:pk>/", AssistantCancelView.as_view(), name="cancel"),
+    path("assistant/create-category/", AssistantCreateCategoryView.as_view(), name="create_category"),
 ]

@@ -9,6 +9,7 @@ Responsabilidades:
 
 import json
 
+from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -22,6 +23,45 @@ from apps.assistant.services import (
     interpret_transaction,
     transcribe_audio,
 )
+
+
+def _build_llm_response(interaction, llm_data):
+    """
+    Monta o JsonResponse adequado com base nos dados retornados pela LLM.
+
+    Prioridade:
+    1. missing_fields → status "missing" (solicitar campos obrigatórios ausentes)
+    2. suggested_category_name sem category → status "suggest_category"
+    3. caso contrário → status "preview"
+    """
+    missing_fields = llm_data.get("missing_fields", [])
+    suggested_category_name = llm_data.get("suggested_category_name")
+    assistant_message = llm_data.get("assistant_message", "")
+
+    if missing_fields:
+        question = assistant_message or "Preciso de mais alguns dados para registrar a transação."
+        return JsonResponse({
+            "status": "missing",
+            "interaction_id": str(interaction.id),
+            "missing_fields": missing_fields,
+            "question": question,
+        })
+
+    if suggested_category_name and not llm_data.get("category"):
+        return JsonResponse({
+            "status": "suggest_category",
+            "interaction_id": str(interaction.id),
+            "suggested_category_name": suggested_category_name,
+            "data": llm_data,
+            "assistant_message": assistant_message or f"Não encontrei a categoria '{suggested_category_name}' no sistema. Deseja criá-la?",
+        })
+
+    return JsonResponse({
+        "status": "preview",
+        "interaction_id": str(interaction.id),
+        "data": llm_data,
+        "assistant_message": assistant_message,
+    })
 
 
 class AssistantView(LoginRequiredMixin, View):
@@ -57,23 +97,7 @@ class AssistantTextView(LoginRequiredMixin, View):
         except ServiceError as exc:
             return JsonResponse({"error": str(exc)}, status=400)
 
-        missing_fields = llm_data.get("missing_fields", [])
-
-        if missing_fields:
-            campos = ", ".join(missing_fields)
-            question = f"Por favor informe: {campos}"
-            return JsonResponse({
-                "status": "missing",
-                "interaction_id": str(interaction.id),
-                "missing_fields": missing_fields,
-                "question": question,
-            })
-
-        return JsonResponse({
-            "status": "preview",
-            "interaction_id": str(interaction.id),
-            "data": llm_data,
-        })
+        return _build_llm_response(interaction, llm_data)
 
 
 class AssistantAudioView(LoginRequiredMixin, View):
@@ -96,23 +120,7 @@ class AssistantAudioView(LoginRequiredMixin, View):
         except ServiceError as exc:
             return JsonResponse({"error": str(exc)}, status=400)
 
-        missing_fields = llm_data.get("missing_fields", [])
-
-        if missing_fields:
-            campos = ", ".join(missing_fields)
-            question = f"Por favor informe: {campos}"
-            return JsonResponse({
-                "status": "missing",
-                "interaction_id": str(interaction.id),
-                "missing_fields": missing_fields,
-                "question": question,
-            })
-
-        return JsonResponse({
-            "status": "preview",
-            "interaction_id": str(interaction.id),
-            "data": llm_data,
-        })
+        return _build_llm_response(interaction, llm_data)
 
 
 class AssistantConfirmView(LoginRequiredMixin, View):
@@ -124,7 +132,8 @@ class AssistantConfirmView(LoginRequiredMixin, View):
         if request.body:
             try:
                 body = json.loads(request.body)
-                adjusted_data = body.get("adjusted_data")
+                # Aceita tanto {adjusted_data: {...}} quanto o objeto diretamente
+                adjusted_data = body.get("adjusted_data") or (body if body else None)
             except (json.JSONDecodeError, TypeError):
                 return JsonResponse({"error": "Corpo da requisição inválido."}, status=400)
 
@@ -153,3 +162,50 @@ class AssistantCancelView(LoginRequiredMixin, View):
             return JsonResponse({"error": str(exc)}, status=400)
 
         return JsonResponse({"status": "cancelled"})
+
+
+class AssistantCreateCategoryView(LoginRequiredMixin, View):
+    """POST /assistant/create-category/ — cria a categoria sugerida e retorna o preview."""
+
+    def post(self, request):
+        try:
+            body = json.loads(request.body)
+        except (json.JSONDecodeError, TypeError):
+            return JsonResponse({"error": "Corpo da requisição inválido."}, status=400)
+
+        interaction_id = body.get("interaction_id", "").strip()
+        category_name = body.get("category_name", "").strip()
+
+        if not interaction_id or not category_name:
+            return JsonResponse(
+                {"error": "interaction_id e category_name são obrigatórios."},
+                status=400,
+            )
+
+        Category = apps.get_model("categories", "Category")
+        category, _ = Category.objects.get_or_create(
+            user=request.user,
+            name=category_name,
+            defaults={"is_active": True},
+        )
+
+        AssistantInteraction = apps.get_model("assistant", "AssistantInteraction")
+        try:
+            interaction = AssistantInteraction.objects.get(
+                id=interaction_id, user=request.user
+            )
+        except AssistantInteraction.DoesNotExist:
+            return JsonResponse({"error": "Interação não encontrada."}, status=404)
+
+        llm_data = dict(interaction.llm_response)
+        llm_data["category"] = {"id": str(category.id), "name": category.name}
+        llm_data["suggested_category_name"] = None
+        interaction.llm_response = llm_data
+        interaction.save()
+
+        return JsonResponse({
+            "status": "preview",
+            "interaction_id": str(interaction.id),
+            "data": llm_data,
+            "assistant_message": f"Categoria '{category_name}' criada! Confira os dados abaixo.",
+        })
