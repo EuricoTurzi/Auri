@@ -193,3 +193,6 @@ SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomSocialAccountAdapter'
 REST_AUTH = {
     'TOKEN_MODEL': None,
 }
+
+# OpenAI
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
