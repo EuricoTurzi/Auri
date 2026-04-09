@@ -112,7 +112,18 @@
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
             </span>
-            Parar gravação
+            Enviar áudio
+          </button>
+
+          <button
+            type="button"
+            id="cancel-record-btn"
+            onclick="cancelRecording()"
+            class="hidden items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] text-white/50 text-xs hover:border-white/15 hover:text-white/70 transition-all duration-200">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Cancelar
           </button>
 
           <span id="recording-status" class="hidden text-xs text-red-400/70 animate-pulse">
@@ -546,6 +557,7 @@
       .then(function (stream) {
         audioChunks = [];
         mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder._stream = stream;
 
         mediaRecorder.addEventListener('dataavailable', function (e) {
           if (e.data.size > 0) {
@@ -556,7 +568,6 @@
         mediaRecorder.addEventListener('stop', function () {
           var blob = new Blob(audioChunks, { type: 'audio/webm' });
           sendAudio(blob);
-          // Parar todas as tracks do stream
           stream.getTracks().forEach(function (track) { track.stop(); });
         });
 
@@ -573,6 +584,20 @@
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
     }
+    setRecordingState(false);
+  };
+
+  window.cancelRecording = function () {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      // Substituir listener de stop para descartar áudio
+      mediaRecorder.onstop = function () {
+        if (mediaRecorder._stream) {
+          mediaRecorder._stream.getTracks().forEach(function (track) { track.stop(); });
+        }
+      };
+      mediaRecorder.stop();
+    }
+    audioChunks = [];
     setRecordingState(false);
   };
 
@@ -609,15 +634,22 @@
   function setRecordingState(recording) {
     var recordBtn = document.getElementById('record-btn');
     var stopBtn = document.getElementById('stop-btn');
+    var cancelBtn = document.getElementById('cancel-record-btn');
     var status = document.getElementById('recording-status');
 
     if (recording) {
       recordBtn.classList.add('hidden');
       stopBtn.classList.remove('hidden');
+      stopBtn.classList.add('flex');
+      cancelBtn.classList.remove('hidden');
+      cancelBtn.classList.add('flex');
       status.classList.remove('hidden');
     } else {
       recordBtn.classList.remove('hidden');
       stopBtn.classList.add('hidden');
+      stopBtn.classList.remove('flex');
+      cancelBtn.classList.add('hidden');
+      cancelBtn.classList.remove('flex');
       status.classList.add('hidden');
     }
   }
