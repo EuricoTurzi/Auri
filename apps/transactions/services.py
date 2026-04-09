@@ -404,4 +404,20 @@ def create_installment_transaction(user, transaction_data, total_installments):
             due_date=due_date,
         )
 
+        # Cria transação filha para aparecer na listagem mensal
+        Transaction.objects.create(
+            user=user,
+            name=f"{transacao_pai.name} ({i}/{total_installments})",
+            description=transacao_pai.description,
+            amount=parcela_amount,
+            type=transacao_pai.type,
+            status="pendente",
+            category=transacao_pai.category,
+            card=transacao_pai.card,
+            date=due_date,
+            due_date=due_date,
+            is_installment=True,
+            recurring_parent=transacao_pai,
+        )
+
     return transacao_pai
