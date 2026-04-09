@@ -117,6 +117,10 @@ Extraia os dados da transação a partir do que o usuário disse, em linguagem n
   - Se encontrar categoria compatível na lista: retorne {{"id": "...", "name": "..."}}
   - Se NÃO encontrar nenhuma categoria compatível: retorne category: null e suggested_category_name com uma sugestão sensata.
   - Se o usuário não tiver categorias: retorne category: null e uma suggested_category_name
+- **is_recurring**: true se o usuário mencionar algo recorrente (ex: "todo mês", "toda semana", "mensalidade", "fixo"). false ou null caso contrário.
+- **frequency**: se is_recurring for true, infira a frequência: "semanal", "quinzenal" ou "mensal". null caso contrário.
+- **is_installment**: true se o usuário mencionar parcelas (ex: "3x", "em 5 vezes", "parcelei em 12x"). false ou null caso contrário. Apenas para saídas (type="saida").
+- **total_installments**: número inteiro de parcelas se is_installment for true (mínimo 2). null caso contrário.
 
 ### Campo de mensagem:
 - **assistant_message**: resposta curta, amigável e natural em português para o usuário.
@@ -130,6 +134,8 @@ Extraia os dados da transação a partir do que o usuário disse, em linguagem n
 3. missing_fields: liste APENAS campos obrigatórios ausentes (name, amount, type, date). NUNCA inclua category, description ou card.
 4. Para cartões: use SOMENTE os da lista. Se não mencionado explicitamente, null.
 5. Responda APENAS com JSON, sem texto extra, sem markdown.
+6. Parcelamento (is_installment) apenas para transações de saída (type="saida").
+7. Recorrência e parcelamento são mutuamente exclusivos — uma transação não pode ser ambos.
 
 ## Formato de resposta (JSON)
 {{
@@ -141,6 +147,10 @@ Extraia os dados da transação a partir do que o usuário disse, em linguagem n
   "date": "YYYY-MM-DD" | null,
   "description": "string ou null",
   "card": {{"id": "uuid", "name": "string"}} | null,
+  "is_recurring": true | false | null,
+  "frequency": "semanal" | "quinzenal" | "mensal" | null,
+  "is_installment": true | false | null,
+  "total_installments": número inteiro ou null,
   "missing_fields": ["campos OBRIGATÓRIOS ausentes — nunca category/description/card"],
   "assistant_message": "mensagem amigável para o usuário"
 }}"""
@@ -268,7 +278,11 @@ def confirm_interaction(interaction_id, user, adjusted_data=None):
         ServiceError: Se a interação não for encontrada, não pertencer ao usuário
                       ou não estiver com status "pendente".
     """
-    from apps.transactions.services import create_transaction
+    from apps.transactions.services import (
+        create_transaction,
+        create_recurring_transaction,
+        create_installment_transaction,
+    )
 
     AssistantInteraction = apps.get_model("assistant", "AssistantInteraction")
 
@@ -293,16 +307,35 @@ def confirm_interaction(interaction_id, user, adjusted_data=None):
     category_id = category.get("id") if isinstance(category, dict) else category
     card_id = card.get("id") if isinstance(card, dict) else card
 
-    transaction = create_transaction(
-        user=user,
-        name=dados.get("name"),
-        amount=dados.get("amount"),
-        type=dados.get("type"),
-        category_id=category_id,
-        date=dados.get("date"),
-        description=dados.get("description"),
-        card_id=card_id,
-    )
+    transaction_data = {
+        "name": dados.get("name"),
+        "amount": dados.get("amount"),
+        "type": dados.get("type"),
+        "category_id": category_id,
+        "date": dados.get("date"),
+        "description": dados.get("description"),
+        "card_id": card_id,
+    }
+
+    is_recurring = dados.get("is_recurring", False)
+    frequency = dados.get("frequency")
+    is_installment = dados.get("is_installment", False)
+    total_installments = dados.get("total_installments")
+
+    if is_recurring and frequency:
+        transaction = create_recurring_transaction(
+            user=user,
+            transaction_data=transaction_data,
+            frequency=frequency,
+        )
+    elif is_installment and total_installments:
+        transaction = create_installment_transaction(
+            user=user,
+            transaction_data=transaction_data,
+            total_installments=int(total_installments),
+        )
+    else:
+        transaction = create_transaction(user=user, **transaction_data)
 
     interaction.status = "confirmado"
     interaction.transaction = transaction
