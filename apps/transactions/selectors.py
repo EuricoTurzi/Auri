@@ -66,7 +66,7 @@ def get_installments(transaction_id, user):
     # Valida ownership — levanta PermissionError se não encontrada
     get_transaction_by_id(transaction_id, user)
 
-    return Installment.objects.filter(parent_transaction_id=transaction_id)
+    return Installment.objects.filter(parent_transaction_id=transaction_id, is_active=True)
 
 
 def get_recurring_transactions(user):
