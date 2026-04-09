@@ -114,11 +114,29 @@ class TransactionCreateView(LoginRequiredMixin, View):
             contexto["error"] = "Data de vencimento inválida."
             return render(request, self.template_name, contexto)
 
+        # Valida campos obrigatórios antes de chamar services
+        if not category_id:
+            contexto["error"] = "Categoria é obrigatória."
+            return render(request, self.template_name, contexto)
+
+        if not date:
+            contexto["error"] = "Data é obrigatória."
+            return render(request, self.template_name, contexto)
+
         # Flags de recorrência / parcelamento
         is_recurring = post.get("is_recurring") == "on"
         frequency = post.get("frequency", "").strip() or None
         is_installment = post.get("is_installment") == "on"
         total_installments_str = post.get("total_installments", "").strip()
+
+        # Valida campos obrigatórios das flags
+        if is_recurring and not frequency:
+            contexto["error"] = "Frequência é obrigatória para transações recorrentes."
+            return render(request, self.template_name, contexto)
+
+        if is_installment and not total_installments_str:
+            contexto["error"] = "Número de parcelas é obrigatório para transações parceladas."
+            return render(request, self.template_name, contexto)
 
         # Dados base da transação
         transaction_data = {
@@ -135,14 +153,14 @@ class TransactionCreateView(LoginRequiredMixin, View):
             transaction_data["card_id"] = card_id
 
         try:
-            if is_recurring and frequency:
+            if is_recurring:
                 # Transação recorrente
                 create_recurring_transaction(
                     user=request.user,
                     transaction_data=transaction_data,
                     frequency=frequency,
                 )
-            elif is_installment and total_installments_str:
+            elif is_installment:
                 # Transação parcelada
                 try:
                     total_installments = int(total_installments_str)
@@ -302,7 +320,8 @@ class TransactionDeleteView(LoginRequiredMixin, View):
                 delete_recurring_transaction(pk, request.user)
             else:
                 deactivate_transaction(pk, request.user)
-        except (ValidationError, PermissionError):
-            pass
+        except (ValidationError, PermissionError) as exc:
+            from django.contrib import messages
+            messages.error(request, str(exc))
 
         return redirect("transactions:list")
