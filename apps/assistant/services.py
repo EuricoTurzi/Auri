@@ -106,7 +106,7 @@ Extraia os dados da transação a partir do que o usuário disse, em linguagem n
 ### Campos OBRIGATÓRIOS (pergunte ao usuário se não estiverem claros):
 - **name**: nome curto da transação (ex: "Supermercado", "Salário", "Netflix")
 - **amount**: valor numérico. Apenas números, sem símbolo de moeda (ex: 45.90)
-- **type**: "entrada" (dinheiro entrando: salário, pix recebido, etc.) ou "saída" (dinheiro saindo: compra, conta, etc.)
+- **type**: "entrada" (dinheiro entrando: salário, pix recebido, etc.) ou "saida" (dinheiro saindo: compra, conta, etc.)
 - **date**: data no formato "YYYY-MM-DD". "hoje" = {hoje}. Se não informada, use null.
 
 ### Campos OPCIONAIS (NUNCA peça ao usuário, tente inferir):
@@ -115,7 +115,7 @@ Extraia os dados da transação a partir do que o usuário disse, em linguagem n
 - **category**: tente inferir semanticamente a partir das categorias do usuário:
   - Exemplos: "supermercado" ou "mercado" → busque categoria "Alimentação"; "netflix" ou "spotify" → "Streaming" ou "Entretenimento"; "gasolina" ou "uber" → "Transporte"
   - Se encontrar categoria compatível na lista: retorne {{"id": "...", "name": "..."}}
-  - Se NÃO encontrar nenhuma categoria compatível: retorne category: null e suggested_category_name com uma sugestão sensata (ex: "Alimentação")
+  - Se NÃO encontrar nenhuma categoria compatível: retorne category: null e suggested_category_name com uma sugestão sensata.
   - Se o usuário não tiver categorias: retorne category: null e uma suggested_category_name
 
 ### Campo de mensagem:
@@ -135,7 +135,7 @@ Extraia os dados da transação a partir do que o usuário disse, em linguagem n
 {{
   "name": "string ou null",
   "amount": número ou null,
-  "type": "entrada" | "saída" | null,
+  "type": "entrada" | "saida" | null,
   "category": {{"id": "uuid", "name": "string"}} | null,
   "suggested_category_name": "string ou null",
   "date": "YYYY-MM-DD" | null,
@@ -162,7 +162,7 @@ def interpret_transaction(user, text: str) -> dict:
         dict: Dicionário com os campos extraídos da transação:
             - name (str | None)
             - amount (float | None)
-            - type ("entrada" | "saída" | None)
+            - type ("entrada" | "saida" | None)
             - category ({"id": str, "name": str} | None)
             - suggested_category_name (str | None)
             - date ("YYYY-MM-DD" | None)
