@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Cartões — Auri{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-dark-950 px-6 py-10">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-serif text-2xl text-gold-400">Meus Cartões</h1>
+        <p class="mt-1 text-sm text-white/30">Gerencie seus cartões de crédito e débito</p>
+      </div>
+      <a href="{% url 'cards:create' %}"
+        class="px-4 py-2 rounded-xl bg-gold-500 text-dark-950 text-sm font-semibold hover:bg-gold-400 transition-all duration-200">
+        + Novo Cartão
+      </a>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm
+        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Lista de cartões -->
+    {% if cards_com_limite %}
+    <div class="space-y-3">
+      {% for item in cards_com_limite %}
+      {% with card=item.card available=item.available_limit %}
+      <div class="px-5 py-4 rounded-2xl bg-dark-800/60 border border-white/[0.05] hover:border-white/10 transition-all">
+        <div class="flex items-start justify-between gap-4">
+
+          <!-- Informações principais -->
+          <div class="flex items-center gap-4 min-w-0">
+            <!-- Ícone de cartão -->
+            <div class="w-10 h-10 rounded-xl bg-dark-700/60 border border-white/[0.06] flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-gold-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke-width="1.5"/>
+                <line x1="1" y1="10" x2="23" y2="10" stroke-width="1.5"/>
+              </svg>
+            </div>
+
+            <div class="min-w-0">
+              <!-- Nome e tipo -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="text-sm font-medium text-white/80">{{ card.name }}</p>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+                  {% if card.card_type == 'credito' %}bg-gold-500/15 text-gold-400
+                  {% else %}bg-emerald-500/15 text-emerald-400{% endif %}">
+                  {{ card.get_card_type_display }}
+                </span>
+              </div>
+
+              <!-- Bandeira e dígitos -->
+              <p class="text-xs text-white/30 mt-0.5">{{ card.brand }} &middot; ****{{ card.last_four_digits }}</p>
+
+              <!-- Limite (apenas crédito) -->
+              {% if card.card_type == 'credito' and card.credit_limit %}
+              <div class="mt-2">
+                <p class="text-xs text-white/40">
+                  Disponível:
+                  <span class="text-white/70 font-medium">R$ {{ available|floatformat:2 }}</span>
+                  <span class="text-white/20"> / </span>
+                  <span class="text-white/40">R$ {{ card.credit_limit|floatformat:2 }}</span>
+                </p>
+                <!-- Mini barra de limite -->
+                {% if card.credit_limit %}
+                {% widthratio available card.credit_limit 100 as pct %}
+                <div class="mt-1.5 w-40 h-1 rounded-full bg-white/[0.06] overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500
+                    {% if pct|add:0 > 50 %}bg-emerald-500/60
+                    {% elif pct|add:0 > 20 %}bg-gold-500/60
+                    {% else %}bg-red-500/60{% endif %}"
+                    style="width: {{ pct }}%"></div>
+                </div>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Ações -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="{% url 'cards:detail' card.pk %}"
+              class="px-3 py-1.5 rounded-lg text-xs text-white/50 border border-white/[0.06] hover:border-white/15 hover:text-white/80 transition-all">
+              Ver
+            </a>
+            <a href="{% url 'cards:edit' card.pk %}"
+              class="px-3 py-1.5 rounded-lg text-xs text-white/50 border border-white/[0.06] hover:border-white/15 hover:text-white/80 transition-all">
+              Editar
+            </a>
+            <form method="post" action="{% url 'cards:delete' card.pk %}" onsubmit="return confirm('Remover o cartão \'{{ card.name }}\'?')">
+              {% csrf_token %}
+              <button type="submit"
+                class="px-3 py-1.5 rounded-lg text-xs text-red-400/70 border border-red-500/10 hover:border-red-500/20 hover:text-red-400 transition-all">
+                Remover
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Estado vazio -->
+    <div class="text-center py-20">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-dark-800/50 border border-white/[0.05] flex items-center justify-center">
+        <svg class="w-7 h-7 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke-width="1.5"/>
+          <line x1="1" y1="10" x2="23" y2="10" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <p class="text-white/20 text-sm">Nenhum cartão cadastrado ainda.</p>
+      <a href="{% url 'cards:create' %}" class="mt-4 inline-block text-gold-400/70 text-sm hover:text-gold-400 transition-colors">
+        Cadastrar primeiro cartão →
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

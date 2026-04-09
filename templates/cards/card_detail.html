@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}{{ card.name }} — Auri{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-dark-950 px-6 py-10">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Navegação -->
+    <div class="mb-8">
+      <a href="{% url 'cards:list' %}" class="text-xs text-white/30 hover:text-white/60 transition-colors">← Meus Cartões</a>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl text-sm
+        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Card Hero -->
+    <div class="relative px-6 py-6 rounded-2xl bg-dark-800/70 border border-white/[0.07] overflow-hidden mb-6">
+      <!-- Fundo decorativo -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gold-500/[0.04] blur-2xl"></div>
+        <div class="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-gold-500/[0.03] blur-xl"></div>
+      </div>
+
+      <div class="relative flex items-start justify-between gap-4">
+        <!-- Informações do cartão -->
+        <div>
+          <div class="flex items-center gap-3 mb-1">
+            <h1 class="font-serif text-2xl text-white">{{ card.name }}</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+              {% if card.card_type == 'credito' %}bg-gold-500/15 text-gold-400
+              {% else %}bg-emerald-500/15 text-emerald-400{% endif %}">
+              {{ card.get_card_type_display }}
+            </span>
+          </div>
+          <p class="text-sm text-white/40">{{ card.brand }} &middot; ****{{ card.last_four_digits }}</p>
+        </div>
+
+        <!-- Ícone -->
+        <div class="w-12 h-12 rounded-xl bg-dark-700/60 border border-white/[0.06] flex items-center justify-center flex-shrink-0">
+          <svg class="w-6 h-6 text-gold-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke-width="1.5"/>
+            <line x1="1" y1="10" x2="23" y2="10" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Barra de limite (apenas crédito) -->
+      {% if card.card_type == 'credito' and card.credit_limit %}
+      <div class="relative mt-5">
+        <div class="flex items-end justify-between mb-2">
+          <div>
+            <p class="text-[11px] text-white/30 uppercase tracking-widest mb-0.5">Limite disponível</p>
+            <p class="text-xl font-semibold text-white">R$ {{ available_limit|floatformat:2 }}</p>
+          </div>
+          <p class="text-xs text-white/30 pb-0.5">
+            de R$ {{ card.credit_limit|floatformat:2 }}
+          </p>
+        </div>
+        <!-- Barra visual -->
+        {% widthratio available_limit card.credit_limit 100 as pct %}
+        <div class="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-700
+            {% if pct|add:0 > 50 %}bg-emerald-500/70
+            {% elif pct|add:0 > 20 %}bg-gold-500/70
+            {% else %}bg-red-500/70{% endif %}"
+            style="width: {{ pct }}%"></div>
+        </div>
+        <p class="mt-1.5 text-[11px] text-white/20">{{ pct }}% disponível do limite total</p>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Detalhes (crédito) -->
+    {% if card.card_type == 'credito' and card.billing_close_day or card.billing_due_day %}
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      {% if card.billing_close_day %}
+      <div class="px-5 py-4 rounded-xl bg-dark-800/50 border border-white/[0.05]">
+        <p class="text-[11px] text-white/30 uppercase tracking-widest mb-1">Fechamento</p>
+        <p class="text-lg font-medium text-white/80">Dia {{ card.billing_close_day }}</p>
+      </div>
+      {% endif %}
+      {% if card.billing_due_day %}
+      <div class="px-5 py-4 rounded-xl bg-dark-800/50 border border-white/[0.05]">
+        <p class="text-[11px] text-white/30 uppercase tracking-widest mb-1">Vencimento</p>
+        <p class="text-lg font-medium text-white/80">Dia {{ card.billing_due_day }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Transações -->
+    <div class="mb-8">
+      <h2 class="font-serif text-lg text-white/70 mb-4">Transações nesta fatura</h2>
+
+      {% if transactions %}
+      <div class="space-y-2">
+        {% for tx in transactions %}
+        <div class="flex items-center justify-between px-5 py-3.5 rounded-xl bg-dark-800/50 border border-white/[0.05] hover:border-white/10 transition-all">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="min-w-0">
+              <p class="text-sm text-white/70 truncate">{{ tx.description }}</p>
+              <p class="text-[11px] text-white/30 mt-0.5">{{ tx.date }}</p>
+            </div>
+          </div>
+          <p class="text-sm font-medium flex-shrink-0 ml-4
+            {% if tx.transaction_type == 'receita' %}text-emerald-400{% else %}text-red-400{% endif %}">
+            {% if tx.transaction_type == 'receita' %}+{% else %}-{% endif %}
+            R$ {{ tx.amount|floatformat:2 }}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-12 rounded-xl bg-dark-800/30 border border-white/[0.04]">
+        <p class="text-white/20 text-sm">Nenhuma transação nesta fatura.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Ações -->
+    <div class="flex items-center gap-3">
+      <a href="{% url 'cards:edit' card.pk %}"
+        class="px-5 py-2.5 rounded-xl bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-200">
+        Editar cartão
+      </a>
+      <a href="{% url 'cards:list' %}"
+        class="px-5 py-2.5 rounded-xl border border-white/[0.06] text-white/50 text-sm hover:border-white/15 hover:text-white/80 transition-all">
+        Voltar à lista
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
