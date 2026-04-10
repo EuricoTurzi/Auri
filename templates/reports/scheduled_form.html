@@ -1,6 +1,105 @@
 {% extends "base.html" %}
-{% block title %}Novo Relatório Agendado{% endblock %}
+
+{% block title %}Novo Agendamento — Auri{% endblock %}
+
+{% block footer %}{% endblock %}
+
 {% block content %}
-<!-- Placeholder - será implementado na T8 -->
-<form method="post">{% csrf_token %}</form>
+<div class="min-h-screen bg-dark-950 px-6 pt-28 pb-10">
+  <div class="max-w-2xl mx-auto">
+
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-serif text-2xl text-gold-400">Novo Agendamento</h1>
+        <p class="mt-1 text-sm text-white/30">Configure um relatório automático</p>
+      </div>
+      <a href="{% url 'reports:scheduled_list' %}"
+        class="px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/50 text-xs font-medium hover:border-gold-500/30 hover:text-gold-400 transition-all">
+        Voltar
+      </a>
+    </div>
+
+    <!-- Formulário -->
+    <form method="post" class="p-6 rounded-2xl bg-dark-800/50 border border-white/[0.05] space-y-5">
+      {% csrf_token %}
+
+      <!-- Nome -->
+      <div>
+        <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Nome do Relatório</label>
+        <input type="text" name="name" required
+          class="w-full px-4 py-2.5 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/80 text-sm focus:outline-none focus:border-gold-500/40 transition-all"
+          placeholder="Ex: Relatório Semanal de Saídas">
+      </div>
+
+      <!-- Frequência e Formato -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Frequência</label>
+          <select name="frequency" required
+            class="w-full px-4 py-2.5 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-sm focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+            <option value="semanal" class="bg-dark-800">Semanal</option>
+            <option value="quinzenal" class="bg-dark-800">Quinzenal</option>
+            <option value="mensal" class="bg-dark-800">Mensal</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-medium uppercase tracking-widest text-white/30 mb-1.5">Formato</label>
+          <select name="export_format" required
+            class="w-full px-4 py-2.5 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-sm focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+            <option value="csv" class="bg-dark-800">CSV</option>
+            <option value="xlsx" class="bg-dark-800">Excel</option>
+            <option value="pdf" class="bg-dark-800">PDF</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="pt-3 border-t border-white/[0.04]">
+        <p class="text-[10px] font-medium uppercase tracking-widest text-white/30 mb-3">Filtros (opcional)</p>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] text-white/25 mb-1">Período Início</label>
+            <input type="date" name="period_start"
+              class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all">
+          </div>
+          <div>
+            <label class="block text-[10px] text-white/25 mb-1">Período Fim</label>
+            <input type="date" name="period_end"
+              class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all">
+          </div>
+          <div>
+            <label class="block text-[10px] text-white/25 mb-1">Tipo</label>
+            <select name="type"
+              class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all appearance-none cursor-pointer">
+              <option value="" class="bg-dark-800">Todos</option>
+              <option value="entrada" class="bg-dark-800">Entrada</option>
+              <option value="saida" class="bg-dark-800">Saída</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] text-white/25 mb-1">Categorias</label>
+            <select name="category_ids" multiple
+              class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white/70 text-xs focus:outline-none focus:border-gold-500/40 transition-all h-[36px]">
+              {% for cat in categorias %}
+              <option value="{{ cat.pk }}" class="bg-dark-800">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão -->
+      <div class="pt-2">
+        <button type="submit"
+          class="w-full px-6 py-3 rounded-xl bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-200">
+          Criar Agendamento
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
 {% endblock %}
