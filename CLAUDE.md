@@ -2,6 +2,43 @@
 
 Este arquivo fornece orientação ao Claude Code (claude.ai/code) ao trabalhar com código neste repositório.
 
+# **IMPORTANTE**
+
+- Os itens **# Anotações**, **# Workflow de Implementação** e **Obsidian** devem ser seguidos OBRIGATÓRIAMENTE. A cada task, deve ser commitado e ao final da implementação da spec, o napkin deve ser atualizado. Antes de qualquer atualização, verifique o arquivo `C:\Users\eurico.dante\Desktop\Development\Auri\.claude\napkin.md`
+
+## Anotações
+
+- **Todas** as anotações devem utilizar a skill Napkin para registrar mudanças e registros de tasks realizadas.
+- O caminho da skill é: `"C:\Users\eurico.dante\.claude\plugins\data\napkin-main"`
+- **Sempre** checar as anotações do napkin
+
+## Workflow de Implementação
+
+- **Commit por task:** ao finalizar cada task de uma spec, criar um commit dedicado com mensagem descritiva (ex: `feat(accounts): T1 — CustomUser model e manager`). Não acumular múltiplas tasks em um único commit. 
+
+# Obisidian
+
+Estou implementando o Obsidian junto aos meus projetos, siga as regras abaixo para controle total.
+Caso alguma pasta não tenha sido criada ainda, crie dentro do Obisidian.
+
+Este projeto mantém documentação de design e specs no vault Obsidian em `Auri/`.
+Use o MCP do Obsidian [obisidian-mcp-tools] para:
+- Atualizar notas de specs dos módulos após implementar mudanças
+- Consultar decisões arquiteturais em `Auri/architecture/`
+- Sincronizar status de implementação em `Auri/modules/<modulo>/status.md`
+
+Ao concluir uma feature, atualize a nota correspondente no Obsidian com:
+- Data da implementação
+- Decisões tomadas que divergiram da spec
+- Testes adicionados
+
+Tratamento de erros:
+O obisidian possui uma pasta para erros reportados, `Auri/errors` nele contem notas de erros utilizando a seguinte nomenclatura `erro-numero_do_erro-data_do_registro`.
+- Leia as notas e identifique os erros.
+- Planeje a solução com base nos erros identificados
+- Atualize as notas informando o que foi alterado, fica em `Auri/solutions`
+- Renomeie a nota do erro com o id do erro para concluido.
+
 ## Visão Geral do Projeto
 
 **Auri** é uma aplicação Django para controle de finanças pessoais. Sistema modular com registro de transações, categorização, controle de cartões, relatórios e um assistente integrado com IA para registro por áudio/linguagem neutra.
@@ -9,7 +46,7 @@ Este arquivo fornece orientação ao Claude Code (claude.ai/code) ao trabalhar c
 ## Ambiente de Desenvolvimento
 
 - **SO:** Windows. O terminal roda no Git Bash.
-- **Restrições de acesso:** Acesso restrito exclusivamente ao diretório do projeto e ferramentas de desenvolvimento. Não executar comandos que afetem o sistema operacional (registry, services, configurações do Windows/WSL, pacotes do sistema). Limitar-se a operações de código, git, pip, pytest, Django e Docker.
+- **Restrições de acesso:** Acesso restrito exclusivamente ao diretório do projeto e ferramentas de desenvolvimento. Não executar comandos que afetem o sistema operacional (registry, services pacotes do sistema). Limitar-se a operações de código, git, pip, pytest, Django e Docker.
 
 ## Comandos de Desenvolvimento
 
@@ -95,10 +132,6 @@ templates/
 - `specs/<módulo>/spec.md` — especificações técnicas SDD (blueprint de implementação, em revisão)
 
 Toda documentação e comentários de código em **Português (pt-br)**.
-
-## Workflow de Implementação
-
-- **Commit por task:** ao finalizar cada task de uma spec, criar um commit dedicado com mensagem descritiva (ex: `feat(accounts): T1 — CustomUser model e manager`). Não acumular múltiplas tasks em um único commit.
 
 ## Regras de Segurança para Agentes
 
