@@ -536,6 +536,26 @@ class TestCreateInstallmentTransaction:
 # ---------------------------------------------------------------------------
 
 class TestSelectors:
+    def test_get_user_transactions_oculta_pai_de_parcelamento(self, user, category):
+        """Após criar uma transação parcelada em 3x, a listagem deve mostrar
+        apenas as 3 parcelas filhas — a transação pai fica como container."""
+        pai = create_installment_transaction(
+            user=user,
+            transaction_data={
+                'name': 'Geladeira',
+                'amount': Decimal('300.00'),
+                'type': 'saida',
+                'category_id': category.id,
+                'date': date(2024, 1, 10),
+            },
+            total_installments=3,
+        )
+        qs = get_user_transactions(user)
+        # Pai não deve aparecer; as 3 filhas sim.
+        assert pai not in qs
+        filhas = qs.filter(recurring_parent=pai)
+        assert filhas.count() == 3
+
     def test_get_user_transactions_retorna_apenas_do_usuario(self, user, other_user, category):
         """get_user_transactions retorna apenas transações do usuário autenticado."""
         other_cat = Category.objects.create(user=other_user, name='Other')

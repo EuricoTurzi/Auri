@@ -20,7 +20,14 @@ def get_user_transactions(user, filters=None):
 
     Retorna QuerySet de Transaction.
     """
-    qs = Transaction.objects.filter(user=user, is_active=True)
+    # Oculta a transação "pai" de parcelamento — ela é um container dos
+    # metadados, e as N parcelas filhas já aparecem na listagem (cada uma
+    # com recurring_parent apontando para o pai). O pai é identificado por
+    # is_installment=True e recurring_parent=None.
+    qs = Transaction.objects.filter(user=user, is_active=True).exclude(
+        is_installment=True,
+        recurring_parent__isnull=True,
+    )
 
     if not filters:
         return qs

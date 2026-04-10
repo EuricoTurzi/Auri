@@ -48,7 +48,11 @@ def get_dashboard_data(user, filters=None):
     from django.apps import apps as django_apps
     Transaction = django_apps.get_model("transactions", "Transaction")
 
-    qs = Transaction.objects.filter(user=user, is_active=True)
+    # Exclui pais de parcelamento — as parcelas filhas já representam o valor.
+    qs = Transaction.objects.filter(user=user, is_active=True).exclude(
+        is_installment=True,
+        recurring_parent__isnull=True,
+    )
     qs = _apply_filters(qs, filters)
 
     # Totais
@@ -124,7 +128,11 @@ def get_filtered_transactions(user, filters):
     from django.apps import apps as django_apps
     Transaction = django_apps.get_model("transactions", "Transaction")
 
-    qs = Transaction.objects.filter(user=user, is_active=True)
+    # Exclui pais de parcelamento — as parcelas filhas já representam o valor.
+    qs = Transaction.objects.filter(user=user, is_active=True).exclude(
+        is_installment=True,
+        recurring_parent__isnull=True,
+    )
     qs = _apply_filters(qs, filters)
     return qs
 
