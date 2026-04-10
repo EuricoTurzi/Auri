@@ -262,6 +262,18 @@ class TestTransactionUpdateView:
         response = client_auth.get(f'/transactions/{transaction.pk}/edit/')
         assert response.status_code == 200
 
+    def test_get_form_edicao_renderiza_valor_e_data_em_formato_de_input(
+        self, client_auth, transaction
+    ):
+        """O form de edição deve vir com Valor (dot decimal) e Data (ISO)
+        preenchidos, compatíveis com <input type="number"> e type="date"."""
+        response = client_auth.get(f'/transactions/{transaction.pk}/edit/')
+        html = response.content.decode('utf-8')
+        # Valor com ponto (não vírgula) — input type="number" exige dot decimal
+        assert 'value="1500.00"' in html, 'amount precisa estar em formato dot decimal'
+        # Data em ISO YYYY-MM-DD — input type="date" exige esse formato
+        assert 'value="2024-01-10"' in html, 'date precisa estar em formato ISO'
+
     def test_post_atualiza_nome(self, client_auth, transaction):
         """POST para edit URL atualiza o nome da transação e redireciona."""
         response = client_auth.post(f'/transactions/{transaction.pk}/edit/', {
