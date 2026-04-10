@@ -269,6 +269,11 @@ def interpret_transaction(user, text: str, conversation_history=None) -> dict:
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0,
+            # Limites explícitos evitam o "pensamento infinito" reportado
+            # em conversas longas (error4-09-04-2026). A resposta esperada
+            # é um JSON pequeno; 500 tokens são mais que suficientes.
+            max_tokens=500,
+            timeout=30,
         )
         raw_content = response.choices[0].message.content
     except openai.AuthenticationError as exc:

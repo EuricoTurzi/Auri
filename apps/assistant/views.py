@@ -64,10 +64,38 @@ def _build_llm_response(interaction, llm_data):
     })
 
 
+def _summarize_llm_response(llm_resp: dict) -> str:
+    """Converte o dict de resposta da LLM em texto natural para o histórico.
+
+    O histórico é reenviado ao GPT no próximo turno. Mandar o JSON bruto
+    confunde o modelo (ele tenta \"continuar\" o JSON em vez de interpretar
+    a próxima mensagem), o que gerava o \"pensamento infinito\" reportado
+    no error4-09-04-2026. Preferimos reutilizar o assistant_message que
+    já é texto natural, com fallback a um resumo curto.
+    """
+    if not isinstance(llm_resp, dict):
+        return ""
+    msg = llm_resp.get("assistant_message")
+    if isinstance(msg, str) and msg.strip():
+        return msg.strip()
+    # Fallback: resumo minimalista
+    partes = []
+    if llm_resp.get("name"):
+        partes.append(str(llm_resp["name"]))
+    if llm_resp.get("amount") is not None:
+        partes.append(f"R$ {llm_resp['amount']}")
+    if llm_resp.get("type"):
+        partes.append(f"({llm_resp['type']})")
+    return " ".join(partes) if partes else "(dados parciais)"
+
+
 def _build_conversation_history(interaction_id, user):
     """
     Monta histórico de conversa a partir de uma interação anterior.
     Retorna lista de mensagens no formato OpenAI (role/content) ou None.
+
+    A mensagem do assistant é formatada como texto natural (não JSON bruto)
+    para evitar que o modelo entre em loop tentando continuar a estrutura.
     """
     if not interaction_id:
         return None
@@ -81,9 +109,11 @@ def _build_conversation_history(interaction_id, user):
     history = []
     # Mensagem do usuário na interação anterior
     history.append({"role": "user", "content": prev.input_content})
-    # Resposta da LLM na interação anterior
-    llm_resp = prev.llm_response or {}
-    history.append({"role": "assistant", "content": json.dumps(llm_resp)})
+    # Resposta da LLM na interação anterior — resumo textual, não JSON.
+    history.append({
+        "role": "assistant",
+        "content": _summarize_llm_response(prev.llm_response or {}),
+    })
     return history
 
 

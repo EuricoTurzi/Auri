@@ -11,6 +11,7 @@ from django.test import Client
 
 from apps.accounts.models import CustomUser
 from apps.assistant.models import AssistantInteraction
+from apps.assistant.views import _build_conversation_history
 from apps.cards.models import Card
 from apps.categories.models import Category
 
@@ -254,6 +255,77 @@ class TestAssistantConfirmView:
 # ---------------------------------------------------------------------------
 # TestAssistantCancelView
 # ---------------------------------------------------------------------------
+
+class TestBuildConversationHistory:
+    def test_retorna_none_sem_interaction_id(self, user):
+        assert _build_conversation_history(None, user) is None
+
+    def test_retorna_none_para_interaction_inexistente(self, user):
+        import uuid
+        assert _build_conversation_history(str(uuid.uuid4()), user) is None
+
+    def test_formata_assistant_como_texto_natural_nao_json(self, user, llm_response_completo):
+        """A mensagem do assistant no histórico deve ser texto legível,
+        não JSON bruto — caso contrário o LLM se confunde e entra em loop."""
+        interaction = AssistantInteraction.objects.create(
+            user=user,
+            input_type="texto",
+            input_content="Almocei hoje",
+            llm_response=llm_response_completo,
+            status="pendente",
+        )
+        history = _build_conversation_history(str(interaction.id), user)
+        assert history is not None
+        assert len(history) == 2
+        assert history[0]["role"] == "user"
+        assert history[0]["content"] == "Almocei hoje"
+        assert history[1]["role"] == "assistant"
+        # Não pode ser JSON bruto
+        assert not history[1]["content"].startswith("{")
+        # Deve conter o assistant_message ou um resumo legível
+        content = history[1]["content"]
+        assert "Almoco" in content or "45" in content
+
+
+class TestInterpretTransactionTimeout:
+    @patch("apps.assistant.services.openai.OpenAI")
+    @patch("apps.assistant.services.settings")
+    def test_interpret_transaction_usa_timeout_e_max_tokens(self, mock_settings, mock_openai_cls, db, user, category):
+        """A chamada ao GPT deve incluir timeout e max_tokens explícitos,
+        para evitar o 'pensamento infinito' reportado em conversas longas."""
+        from apps.assistant.services import interpret_transaction
+        mock_settings.OPENAI_API_KEY = "fake-key"
+
+        gpt_json = {
+            "name": "Taxi",
+            "amount": 30.0,
+            "type": "saida",
+            "category": None,
+            "date": "2024-06-15",
+            "description": None,
+            "card": None,
+            "missing_fields": [],
+            "assistant_message": "Anotei: R$30 de taxi.",
+        }
+        mock_message = MagicMock()
+        mock_message.content = json.dumps(gpt_json)
+        mock_choice = MagicMock()
+        mock_choice.message = mock_message
+        mock_response = MagicMock()
+        mock_response.choices = [mock_choice]
+
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_openai_cls.return_value = mock_client
+
+        interpret_transaction(user, "paguei 30 de taxi hoje")
+
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert "timeout" in call_kwargs, "chamada ao GPT precisa incluir timeout"
+        assert call_kwargs["timeout"] > 0
+        assert "max_tokens" in call_kwargs, "chamada ao GPT precisa incluir max_tokens"
+        assert call_kwargs["max_tokens"] > 0
+
 
 class TestAssistantCancelView:
     def test_cancel_view(self, auth_client, interaction_pendente):
