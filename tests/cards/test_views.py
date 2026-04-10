@@ -143,6 +143,17 @@ class TestCardUpdateView:
         response = client_auth.get(f'/cards/{card.pk}/edit/')
         assert response.status_code == 200
 
+    def test_get_form_edicao_renderiza_credit_limit_em_formato_input(
+        self, client_auth, card
+    ):
+        """credit_limit deve ser renderizado como \"5000\" (dot decimal),
+        compatível com input type=\"number\"."""
+        response = client_auth.get(f'/cards/{card.pk}/edit/')
+        html = response.content.decode('utf-8')
+        # Aceita "5000" ou "5000.00" — o que importa é não haver vírgula.
+        assert 'value="5000"' in html or 'value="5000.00"' in html, \
+            'credit_limit precisa estar em formato dot decimal (sem vírgula de L10N)'
+
     def test_post_atualiza(self, client_auth, card):
         """POST /cards/<pk>/edit/ com dados válidos atualiza o cartão e redireciona."""
         response = client_auth.post(f'/cards/{card.pk}/edit/', {
