@@ -94,6 +94,7 @@ def _get_current_billing_period_spent(card, Transaction):
         Transaction.objects.filter(
             card=card,
             type="saida",
+            is_active=True,
             date__gte=data_inicio,
             date__lte=data_fim,
         )
@@ -146,7 +147,7 @@ def get_card_transactions(card_id, user, billing_period=None):
         # transactions ainda não implementado — retorna queryset vazio compatível
         return Card.objects.none()
 
-    qs = Transaction.objects.filter(card=card)
+    qs = Transaction.objects.filter(card=card, is_active=True)
 
     if billing_period is not None:
         date_start, date_end = billing_period

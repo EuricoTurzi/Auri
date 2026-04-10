@@ -179,3 +179,50 @@ class TestSelectors:
         )
         resultado = get_available_limit(cartao)
         assert resultado is None
+
+    def test_get_available_limit_ignora_transacoes_inativas(self, user):
+        """Transações soft-deleted não devem reduzir o limite disponível."""
+        from decimal import Decimal
+        import datetime
+        from apps.categories.models import Category
+        from apps.transactions.models import Transaction
+
+        # Cartão sem billing_close_day usa o mês corrente como período de fatura
+        cartao = Card.objects.create(
+            user=user,
+            name='Nubank',
+            brand='Mastercard',
+            last_four_digits='1234',
+            card_type='credito',
+            credit_limit=Decimal('5000.00'),
+        )
+        categoria = Category.objects.create(user=user, name='Teste')
+        hoje = datetime.date.today()
+
+        # Transação ativa no período atual
+        Transaction.objects.create(
+            user=user,
+            name='Compra ativa',
+            amount=Decimal('100.00'),
+            type='saida',
+            status='pago',
+            category=categoria,
+            card=cartao,
+            date=hoje,
+        )
+        # Transação inativa (soft-deleted) no mesmo período
+        Transaction.objects.create(
+            user=user,
+            name='Compra excluída',
+            amount=Decimal('300.00'),
+            type='saida',
+            status='pago',
+            category=categoria,
+            card=cartao,
+            date=hoje,
+            is_active=False,
+        )
+
+        resultado = get_available_limit(cartao)
+        # Limite 5000 - apenas a ativa (100) = 4900
+        assert resultado == Decimal('4900.00')
