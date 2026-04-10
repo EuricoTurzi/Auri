@@ -63,3 +63,9 @@ celerybeat-schedule*
 node_modules/
 package-lock.json
 
+# Error logs
+.errors/
+
+# specs
+specs/
+.pytest_cache
