@@ -16,7 +16,15 @@ class Category(BaseModel):
     icon = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
-        unique_together = [('user', 'name')]
+        constraints = [
+            # Unicidade de nome por usuário aplica-se apenas a categorias ativas,
+            # permitindo recriar um nome após soft-delete.
+            models.UniqueConstraint(
+                fields=['user', 'name'],
+                condition=models.Q(is_active=True),
+                name='unique_category_name_per_user_active',
+            ),
+        ]
         ordering = ['name']
         verbose_name = 'Categoria'
         verbose_name_plural = 'Categorias'

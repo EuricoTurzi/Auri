@@ -58,6 +58,15 @@ class TestCreateCategory:
         cat2 = create_category(other_user, 'Alimentação')
         assert cat2.name == 'Alimentação'
 
+    def test_permite_recriar_nome_de_categoria_inativada(self, user, category):
+        # Inativa a categoria existente (soft-delete)
+        deactivate_category(category.id, user)
+        # Deve ser possível criar nova categoria com o mesmo nome
+        nova = create_category(user, 'Alimentação')
+        assert nova.id != category.id
+        assert nova.is_active is True
+        assert nova.name == 'Alimentação'
+
 
 class TestUpdateCategory:
     def test_atualiza_campos_da_categoria(self, user, category):
@@ -76,6 +85,16 @@ class TestUpdateCategory:
         Category.objects.create(user=user, name='Transporte')
         with pytest.raises(ValidationError):
             update_category(category.id, user, name='Transporte')
+
+    def test_permite_renomear_para_nome_de_categoria_inativada(self, user, category):
+        inativa = Category.objects.create(user=user, name='Transporte', is_active=False)
+        # Deve permitir renomear para um nome que só existe em categoria inativa
+        updated = update_category(category.id, user, name='Transporte')
+        assert updated.name == 'Transporte'
+        assert updated.id == category.id
+        # A inativa permanece no banco, inalterada
+        inativa.refresh_from_db()
+        assert inativa.is_active is False
 
     def test_levanta_permission_error_para_outro_usuario(self, user, other_user, category):
         with pytest.raises(PermissionError):

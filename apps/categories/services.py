@@ -8,7 +8,7 @@ def create_category(user, name, description=None, color=None, icon=None):
     Cria categoria para o usuário. Levanta ValidationError se nome duplicado.
     """
     name = name.strip()
-    if Category.objects.filter(user=user, name=name).exists():
+    if Category.objects.filter(user=user, name=name, is_active=True).exists():
         raise ValidationError('Já existe uma categoria com este nome.')
     return Category.objects.create(
         user=user,
@@ -32,7 +32,7 @@ def update_category(category_id, user, **kwargs):
     if 'name' in kwargs:
         new_name = kwargs['name'].strip()
         kwargs['name'] = new_name
-        if Category.objects.filter(user=user, name=new_name).exclude(id=category_id).exists():
+        if Category.objects.filter(user=user, name=new_name, is_active=True).exclude(id=category_id).exists():
             raise ValidationError('Já existe uma categoria com este nome.')
 
     for field, value in kwargs.items():
