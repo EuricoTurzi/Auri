@@ -16,6 +16,7 @@ drf-spectacular>=0.27
 # Autenticação OAuth
 django-allauth>=65.0
 dj-rest-auth>=7.0
+cryptography>=3.4
 
 # OpenAI (Whisper + LLM)
 openai>=1.0
@@ -25,3 +26,13 @@ pytest>=8.0
 pytest-django>=4.9
 pytest-cov>=5.0
 factory-boy>=3.3
+
+# Email
+requests>=2.31
+
+# Date
+python-dateutil=>2.8
+
+# Exports
+openpyxl=>3.0
+weasyprint=>57.0
