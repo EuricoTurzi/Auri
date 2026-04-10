@@ -8,6 +8,9 @@ Responsabilidades:
 """
 
 import json
+from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
+
 import openai
 from django.apps import apps
 from django.conf import settings
@@ -16,6 +19,65 @@ from django.conf import settings
 class ServiceError(Exception):
     """Exceção base para erros de serviço do módulo assistant."""
     pass
+
+
+def _parse_amount(value):
+    """Converte amount para Decimal, aceitando int, float, str e None.
+
+    Retorna None se o valor for None ou vazio. Levanta ServiceError para
+    strings inválidas (ex: "abc").
+    """
+    if value is None or value == "":
+        return None
+    if isinstance(value, Decimal):
+        return value
+    try:
+        # str(value) garante precisão decimal mesmo para floats
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError) as exc:
+        raise ServiceError(f"Valor de amount inválido: {value!r}") from exc
+
+
+def _parse_date(value):
+    """Converte data para datetime.date, aceitando date, str ISO e None.
+
+    Retorna None se o valor for None ou vazio. Levanta ServiceError para
+    strings em formato inválido.
+    """
+    if value is None or value == "":
+        return None
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, str):
+        try:
+            return date.fromisoformat(value)
+        except ValueError as exc:
+            raise ServiceError(f"Data em formato inválido: {value!r}") from exc
+    raise ServiceError(f"Tipo de data não suportado: {type(value).__name__}")
+
+
+def _normalize_transaction_data(data: dict) -> dict:
+    """Normaliza o dict de dados de transação vindos da LLM ou do front.
+
+    - ``amount`` → ``Decimal``
+    - ``date``, ``due_date`` → ``datetime.date``
+
+    Mantém os demais campos inalterados. Necessário porque ``llm_response``
+    guarda JSON (com números e datas como string) e ``adjusted_data`` chega
+    via ``JSON.stringify`` do front, onde todos os valores primitivos viram
+    strings. Sem normalização, ``_proxima_data`` (recorrência/parcelamento)
+    e as validações de ``amount`` quebram no downstream.
+    """
+    normalized = dict(data)
+    if "amount" in normalized:
+        normalized["amount"] = _parse_amount(normalized.get("amount"))
+    if "date" in normalized:
+        normalized["date"] = _parse_date(normalized.get("date"))
+    if "due_date" in normalized:
+        normalized["due_date"] = _parse_date(normalized.get("due_date"))
+    return normalized
 
 
 def transcribe_audio(audio_file) -> str:
@@ -311,7 +373,7 @@ def confirm_interaction(interaction_id, user, adjusted_data=None):
     category_id = category.get("id") if isinstance(category, dict) else category
     card_id = card.get("id") if isinstance(card, dict) else card
 
-    transaction_data = {
+    transaction_data = _normalize_transaction_data({
         "name": dados.get("name"),
         "amount": dados.get("amount"),
         "type": dados.get("type"),
@@ -319,7 +381,7 @@ def confirm_interaction(interaction_id, user, adjusted_data=None):
         "date": dados.get("date"),
         "description": dados.get("description"),
         "card_id": card_id,
-    }
+    })
 
     is_recurring = dados.get("is_recurring", False)
     frequency = dados.get("frequency")

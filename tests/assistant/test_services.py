@@ -333,6 +333,64 @@ class TestConfirmInteraction:
         with pytest.raises(ServiceError, match="Sem permissão"):
             confirm_interaction(interaction_pendente.id, other_user)
 
+    def test_confirm_interaction_normaliza_amount_string(self, user, interaction_pendente, category, card):
+        """Amount vindo como string (adjusted_data do front) deve ser convertido para Decimal."""
+        adjusted = {
+            "name": "Ajustado",
+            "amount": "150.75",  # string, como vem do JSON.stringify
+            "type": "saida",
+            "category": {"id": str(category.id), "name": category.name},
+            "date": "2024-07-20",
+            "description": "",
+            "card": {"id": str(card.id), "name": card.name},
+        }
+        transaction = confirm_interaction(interaction_pendente.id, user, adjusted_data=adjusted)
+        assert transaction.amount == Decimal("150.75")
+
+    def test_confirm_interaction_normaliza_date_string_para_recorrencia(
+        self, user, interaction_pendente, category, card
+    ):
+        """Date como string não deve quebrar create_recurring_transaction."""
+        adjusted = {
+            "name": "Recorrente",
+            "amount": "200.00",
+            "type": "saida",
+            "category": {"id": str(category.id), "name": category.name},
+            "date": "2026-04-10",  # string, não date
+            "description": "",
+            "card": {"id": str(card.id), "name": card.name},
+            "is_recurring": True,
+            "frequency": "mensal",
+        }
+        transaction = confirm_interaction(interaction_pendente.id, user, adjusted_data=adjusted)
+        assert transaction.is_recurring is True
+        assert transaction.date == date(2026, 4, 10)
+        # Deve ter criado ocorrências filhas (12 meses)
+        filhas = Transaction.objects.filter(recurring_parent=transaction)
+        assert filhas.count() >= 11
+
+    def test_confirm_interaction_normaliza_amount_e_date_para_parcelamento(
+        self, user, interaction_pendente, category, card
+    ):
+        """Amount+date como string não deve quebrar create_installment_transaction."""
+        adjusted = {
+            "name": "Parcelado",
+            "amount": "300.00",
+            "type": "saida",
+            "category": {"id": str(category.id), "name": category.name},
+            "date": "2026-04-10",
+            "description": "",
+            "card": {"id": str(card.id), "name": card.name},
+            "is_installment": True,
+            "total_installments": 3,
+        }
+        transaction = confirm_interaction(interaction_pendente.id, user, adjusted_data=adjusted)
+        assert transaction.is_installment is True
+        assert transaction.amount == Decimal("300.00")
+        # 3 parcelas filhas criadas
+        filhas = Transaction.objects.filter(recurring_parent=transaction, is_installment=True)
+        assert filhas.count() == 3
+
 
 # ---------------------------------------------------------------------------
 # TestCancelInteraction

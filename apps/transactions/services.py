@@ -1,5 +1,5 @@
 import calendar
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_DOWN
 
 from django.apps import apps as django_apps
@@ -210,6 +210,22 @@ def update_status(transaction_id, user, status):
 FREQUENCIAS_VALIDAS = {"semanal", "quinzenal", "mensal"}
 
 
+def _coerce_date(valor):
+    """Garante que o valor seja um objeto ``datetime.date``.
+
+    Aceita ``date``, ``datetime`` (extrai .date()) e strings ISO "YYYY-MM-DD".
+    Defesa contra callers que repassem strings diretamente (ex: fluxo do
+    assistente antes da normalização, ou terceiros que montem o dict manualmente).
+    """
+    if isinstance(valor, datetime):
+        return valor.date()
+    if isinstance(valor, date):
+        return valor
+    if isinstance(valor, str):
+        return date.fromisoformat(valor)
+    raise ValidationError(f"Data inválida: {valor!r}")
+
+
 def _proxima_data(data_base, frequencia, iteracao):
     """Calcula a próxima data de ocorrência conforme a frequência.
 
@@ -217,6 +233,7 @@ def _proxima_data(data_base, frequencia, iteracao):
     - quinzenal: +14 dias por iteração
     - mensal:    mesmo dia no mês seguinte, respeitando o limite de dias do mês
     """
+    data_base = _coerce_date(data_base)
     if frequencia == "semanal":
         return data_base + timedelta(weeks=iteracao)
     if frequencia == "quinzenal":
