@@ -25,6 +25,9 @@
         <a href="{% url 'assistant:assistant' %}" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
           Assistente
         </a>
+        <a href="{% url 'reports:dashboard' %}" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
+          Relatórios
+        </a>
       {% else %}
         <a href="#features" class="px-3.5 py-1.5 rounded-full text-[13px] text-white/35 hover:text-white/70 transition-colors duration-300">
           Funcionalidades
@@ -79,6 +82,7 @@
         <a href="{% url 'cards:list' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Cartões</a>
         <a href="{% url 'categories:list' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Categorias</a>
         <a href="{% url 'assistant:assistant' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Assistente</a>
+        <a href="{% url 'reports:dashboard' %}" class="px-4 py-2.5 rounded-xl text-sm text-white/35 hover:text-white/70 transition-colors">Relatórios</a>
         <div class="border-t border-white/[0.06] my-1"></div>
         <form method="post" action="{% url 'accounts:logout' %}">
           {% csrf_token %}
