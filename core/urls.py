@@ -25,7 +25,7 @@ urlpatterns = [
     path('', include('apps.assistant.urls')),
     path('', include('apps.cards.urls')),
     path('', include('apps.categories.urls')),
-    # path('', include('apps.reports.urls')),
+    path('', include('apps.reports.urls')),
     path('', include('apps.transactions.urls')),
 
     # API URLs
