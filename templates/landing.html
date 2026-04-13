@@ -1,7 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Auri{% endblock %}
-{% block meta_description %}Controle financeiro pessoal, modular e inteligente. Registre transações por voz, gerencie cartões e extraia relatórios.{% endblock %}
+{% block title %}Auri — Private Banking{% endblock %}
+{% block meta_description %}Controle financeiro pessoal, modular e inteligente. Registre transações por voz, gerencie cartões e extraia relatórios com a elegância que seu patrimônio merece.{% endblock %}
+
+{% block extra_head %}
+<style>
+  html.lenis {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -11,131 +31,125 @@
 <section class="relative min-h-[100dvh] flex items-center overflow-hidden">
 
   <!-- Orbital lines -->
-  <div class="orbit animate-orbit-slow w-[600px] h-[600px]" style="top: 50%; right: -10%; transform: translate(0, -50%);"></div>
-  <div class="orbit animate-orbit-slower w-[800px] h-[800px]" style="top: 50%; right: -15%; transform: translate(0, -50%);"></div>
-  <div class="orbit w-[1000px] h-[1000px]" style="top: 50%; right: -20%; transform: translate(0, -50%);"></div>
+  <div class="orbit animate-orbit-slow w-[600px] h-[600px] opacity-70" style="top: 50%; right: -10%; transform: translate(0, -50%);"></div>
+  <div class="orbit animate-orbit-slower w-[800px] h-[800px] opacity-50" style="top: 50%; right: -15%; transform: translate(0, -50%);"></div>
+  <div class="orbit w-[1000px] h-[1000px] opacity-30" style="top: 50%; right: -20%; transform: translate(0, -50%);"></div>
 
   <!-- Glow -->
-  <div class="glow-gold" style="top: 20%; right: 5%;"></div>
+  <div class="glow-gold" style="top: 10%; right: 10%; filter: blur(90px);"></div>
+  <div class="absolute top-1/2 left-0 w-[500px] h-[500px] bg-gold-900/10 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2"></div>
 
   <!-- Content -->
-  <div class="relative max-w-7xl mx-auto px-6 pt-36 pb-24 w-full">
-    <div class="grid lg:grid-cols-12 gap-12 lg:gap-6 items-center">
+  <div class="relative max-w-7xl mx-auto px-6 pt-36 pb-24 w-full z-10">
+    <div class="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
 
       <!-- Text — 6 cols -->
-      <div class="lg:col-span-6 lg:pr-8">
+      <div class="lg:col-span-6 lg:pr-8 flex flex-col items-start">
 
-        <p id="hero-label" class="text-[11px] font-medium uppercase tracking-widest-plus text-gold-500/70 mb-6 opacity-0">
-          Controle financeiro pessoal
-        </p>
+        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-gold-500/20 bg-gold-500/[0.02] backdrop-blur-md mb-8 opacity-0" id="hero-label">
+          <span class="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse"></span>
+          <span class="text-[10px] font-medium uppercase tracking-widest-plus text-gold-400/80">
+            Acesso Exclusivo
+          </span>
+        </div>
 
-        <h1 id="hero-title" class="font-serif text-5xl sm:text-6xl lg:text-[5.5rem] leading-[1.05] tracking-tight opacity-0">
-          Seu dinheiro,<br>
-          <em class="text-gold-gradient not-italic">sob controle.</em>
+        <h1 id="hero-title" class="font-serif text-5xl sm:text-6xl lg:text-[6rem] leading-[1.05] tracking-tight text-white/95">
+          Patrimônio,<br>
+          <em class="text-gold-gradient not-italic">sob medida.</em>
         </h1>
 
-        <p id="hero-desc" class="mt-8 text-[17px] text-white/30 max-w-md leading-[1.7] opacity-0">
-          Registre transações por voz ou texto, categorize seus gastos
-          e tenha visibilidade total das suas finanças pessoais.
+        <p id="hero-desc" class="mt-8 text-lg text-white/40 max-w-md leading-[1.8] font-light">
+          A inteligência de um family office na palma da sua mão. Registre, categorize e amplie sua visão financeira com uma IA dedicada.
         </p>
 
-        <div id="hero-cta" class="mt-12 flex flex-wrap items-center gap-5 opacity-0">
-          <a href="{% url 'accounts:register' %}" class="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-400 shadow-lg shadow-gold-500/10">
-            Comece agora
-            <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="hero-cta" class="mt-12 flex flex-wrap items-center gap-6 opacity-0">
+          <a href="{% url 'accounts:register' %}" class="magnetic group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-gold-500 text-dark-950 font-semibold text-sm transition-all duration-500 hover:bg-gold-400 overflow-hidden shadow-[0_0_40px_rgba(201,168,76,0.15)] hover:shadow-[0_0_60px_rgba(201,168,76,0.3)]">
+            <span class="relative z-10">Solicitar Acesso</span>
+            <svg class="w-4 h-4 relative z-10 transition-transform duration-500 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
             </svg>
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"></div>
           </a>
-          <a href="{% url 'accounts:login' %}" class="text-sm text-white/30 hover:text-white/60 transition-colors duration-300 underline underline-offset-4 decoration-white/10 hover:decoration-white/25">
-            Já tenho conta
-          </a>
-          <a href="#features" class="text-sm text-white/30 hover:text-white/60 transition-colors duration-300 underline underline-offset-4 decoration-white/10 hover:decoration-white/25">
-            Explorar
+          <a href="{% url 'accounts:login' %}" class="magnetic text-sm text-white/40 hover:text-white transition-colors duration-400 tracking-wide">
+            Acessar conta
           </a>
         </div>
       </div>
 
       <!-- Cards 3D — 6 cols -->
       <div class="lg:col-span-6 card-scene relative" id="hero-cards">
-        <div class="relative w-full h-[400px] sm:h-[460px]">
+        <div class="relative w-full h-[450px] sm:h-[500px]">
 
           <!-- Pulse rings atrás dos cards -->
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full border border-gold-500/10 pulse-ring"></div>
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full border border-gold-500/10 pulse-ring-delayed"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] rounded-full border border-gold-500/15 pulse-ring"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] rounded-full border border-gold-500/10 pulse-ring-delayed"></div>
 
           <!-- Card dourado principal -->
-          <div id="card-gold" class="card-3d finance-card-gold absolute w-[300px] sm:w-[340px] p-6 opacity-0"
-               style="top: 5%; left: 50%; transform: translate(-50%, 0) rotateY(-15deg) rotateX(10deg);">
-            <div class="flex items-center justify-between mb-10">
-              <span class="text-white/60 text-[10px] font-medium uppercase tracking-widest-plus">Auri Finance</span>
-              <span class="font-serif text-white/80 text-sm italic">Auri</span>
+          <div id="card-gold" class="card-3d finance-card-gold absolute w-[320px] sm:w-[360px] p-7 backdrop-blur-2xl"
+               style="top: 5%; left: 50%; transform: translate(-50%, 0) rotateY(-15deg) rotateX(10deg); opacity: 0;">
+            <div class="flex items-center justify-between mb-12">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                </svg>
+                <span class="text-white/80 text-[10px] font-medium uppercase tracking-widest-plus">Auri Private</span>
+              </div>
+              <svg class="w-8 h-8 opacity-60" viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="12" fill="white" fill-opacity="0.5"/>
+                <circle cx="24" cy="12" r="12" fill="white" fill-opacity="0.5"/>
+              </svg>
             </div>
-            <div class="flex gap-4 mb-10 font-mono text-[15px] text-white/80 tracking-[0.25em]">
-              <span>1662</span><span>0911</span><span>2919</span><span>2021</span>
+            <div class="flex gap-4 mb-10 font-mono text-[16px] text-white/90 tracking-[0.25em] drop-shadow-sm">
+              <span>••••</span><span>••••</span><span>••••</span><span>2026</span>
             </div>
             <div class="flex justify-between items-end">
               <div>
-                <p class="text-[9px] text-white/40 uppercase tracking-widest-plus">Saldo disponível</p>
-                <p class="text-lg font-semibold text-white mt-1">R$ 4.769,00</p>
-              </div>
-              <div class="text-right">
-                <p class="text-[9px] text-white/40 uppercase tracking-widest-plus">Válido</p>
-                <p class="text-sm text-white/70 mt-1">04/28</p>
+                <p class="text-[9px] text-white/50 uppercase tracking-widest-plus mb-1">Patrimônio Líquido</p>
+                <p class="text-2xl font-serif text-white tracking-tight">R$ 1.248.769,00</p>
               </div>
             </div>
           </div>
 
           <!-- Card escuro (resumo mensal) -->
-          <div id="card-summary" class="card-3d finance-card absolute w-[280px] sm:w-[320px] p-6 opacity-0"
-               style="top: 28%; left: 58%; transform: translate(-50%, 0) rotateY(-10deg) rotateX(6deg);">
-            <div class="flex items-center justify-between mb-5">
-              <span class="text-white/25 text-[10px] uppercase tracking-widest-plus">Resumo Mensal</span>
-              <span class="text-gold-400/60 text-[10px] font-medium">Abr 2026</span>
+          <div id="card-summary" class="card-3d finance-card absolute w-[280px] sm:w-[320px] p-6 backdrop-blur-xl border border-white/5"
+               style="top: 35%; left: 62%; transform: translate(-50%, 0) rotateY(-10deg) rotateX(6deg); opacity: 0;">
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-white/30 text-[10px] uppercase tracking-widest-plus">Fluxo de Caixa</span>
+              <span class="text-gold-400/80 text-[10px] font-medium px-2 py-1 rounded bg-gold-400/10 border border-gold-400/20">Abr 2026</span>
             </div>
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-                  <span class="text-[13px] text-white/35">Entradas</span>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-emerald-400/10 flex items-center justify-center border border-emerald-400/20 group-hover:scale-110 transition-transform">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 4.5l-15 15m0 0h11.25m-11.25 0V8.25" /></svg>
+                  </div>
+                  <span class="text-[13px] text-white/50">Rendimentos</span>
                 </div>
-                <span class="text-[13px] font-medium text-emerald-400">+ R$ 5.200</span>
+                <span class="text-[14px] font-medium text-emerald-400">+ R$ 45.200</span>
               </div>
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-1.5 h-1.5 rounded-full bg-red-400/70"></div>
-                  <span class="text-[13px] text-white/35">Saídas</span>
+              <div class="flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                    <svg class="w-3.5 h-3.5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" /></svg>
+                  </div>
+                  <span class="text-[13px] text-white/50">Despesas</span>
                 </div>
-                <span class="text-[13px] font-medium text-red-400/80">- R$ 2.431</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-1.5 h-1.5 rounded-full bg-gold-400/60"></div>
-                  <span class="text-[13px] text-white/35">Parcelas</span>
-                </div>
-                <span class="text-[13px] font-medium text-gold-400/70">- R$ 534</span>
-              </div>
-            </div>
-            <div class="mt-5 pt-4 border-t border-white/[0.04]">
-              <div class="flex justify-between items-center">
-                <span class="text-[9px] text-white/20 uppercase tracking-widest-plus">Saldo</span>
-                <span class="text-base font-semibold text-white">R$ 2.235</span>
+                <span class="text-[14px] font-medium text-white/80">- R$ 12.431</span>
               </div>
             </div>
           </div>
 
           <!-- Badge IA -->
-          <div id="card-badge" class="absolute top-2 right-4 sm:right-12 opacity-0">
-            <div class="bg-dark-800/70 backdrop-blur-xl rounded-2xl px-4 py-3 border border-white/[0.04]">
-              <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-gold-500/10 flex items-center justify-center">
-                  <svg class="w-3.5 h-3.5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-[11px] font-medium text-white/70">Via áudio</p>
-                  <p class="text-[9px] text-white/25">Assistente IA</p>
-                </div>
+          <div id="card-badge" class="absolute top-4 right-2 sm:right-8 opacity-0">
+            <div class="bg-dark-900/80 backdrop-blur-2xl rounded-2xl p-2 pr-5 border border-white/10 shadow-2xl flex items-center gap-3 transform hover:scale-105 transition-transform duration-300">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400/20 to-gold-600/5 flex items-center justify-center border border-gold-500/20">
+                <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[12px] font-medium text-white/90">Auri AI Ativa</p>
+                <p class="text-[10px] text-gold-400/70">Ouvindo...</p>
               </div>
             </div>
           </div>
@@ -149,140 +163,165 @@
 
 
 <!-- ============================================
-     STATS
+     STATS / MARQUEE
      ============================================ -->
-<section class="relative py-20">
-  <div class="divider-gold"></div>
-  <div class="max-w-7xl mx-auto px-6 py-16">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-10" id="stats-section">
-      <div class="text-center">
-        <p class="stat-number font-serif text-4xl sm:text-5xl text-white" data-count="6">0</p>
-        <p class="text-[11px] text-white/20 mt-3 uppercase tracking-widest-plus">Módulos</p>
+<section class="relative py-12 border-y border-white/[0.04] bg-white/[0.01] overflow-hidden flex items-center">
+  <div class="flex whitespace-nowrap opacity-30 animate-marquee" style="width: 200%;">
+    <div class="flex items-center gap-16 px-8 text-[11px] uppercase tracking-[0.3em] font-medium text-white/60">
+      <span>Private Banking Standards</span> •
+      <span>Bank-Grade Encryption</span> •
+      <span>Inteligência Artificial Nativa</span> •
+      <span>Modular Architecture</span> •
+      <span>Absolute Privacy</span> •
+      <span>Private Banking Standards</span> •
+      <span>Bank-Grade Encryption</span> •
+      <span>Inteligência Artificial Nativa</span> •
+      <span>Modular Architecture</span> •
+      <span>Absolute Privacy</span>
+    </div>
+  </div>
+</section>
+
+<section class="relative py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-12" id="stats-section">
+      <div class="text-center group">
+        <p class="stat-number font-serif text-5xl sm:text-6xl text-white transition-colors group-hover:text-gold-400 duration-500" data-count="6">0</p>
+        <p class="text-[10px] text-white/30 mt-4 uppercase tracking-widest-plus font-medium">Módulos Exclusivos</p>
       </div>
-      <div class="text-center">
-        <p class="stat-number font-serif text-4xl sm:text-5xl text-white" data-count="3" data-suffix="+">0</p>
-        <p class="text-[11px] text-white/20 mt-3 uppercase tracking-widest-plus">Exportações</p>
+      <div class="text-center group">
+        <p class="stat-number font-serif text-5xl sm:text-6xl text-white transition-colors group-hover:text-gold-400 duration-500" data-count="3" data-suffix="+">0</p>
+        <p class="text-[10px] text-white/30 mt-4 uppercase tracking-widest-plus font-medium">Formatos de Exportação</p>
       </div>
-      <div class="text-center">
-        <p class="stat-number font-serif text-4xl sm:text-5xl text-gold-400" data-count="100" data-suffix="%">0</p>
-        <p class="text-[11px] text-white/20 mt-3 uppercase tracking-widest-plus">Configurável</p>
+      <div class="text-center group">
+        <p class="stat-number font-serif text-5xl sm:text-6xl text-gold-400 drop-shadow-[0_0_15px_rgba(201,168,76,0.3)]" data-count="100" data-suffix="%">0</p>
+        <p class="text-[10px] text-gold-400/50 mt-4 uppercase tracking-widest-plus font-medium">Personalizável</p>
       </div>
-      <div class="text-center">
-        <p class="stat-number font-serif text-4xl sm:text-5xl text-white" data-count="24" data-suffix="/7">0</p>
-        <p class="text-[11px] text-white/20 mt-3 uppercase tracking-widest-plus">Disponível</p>
+      <div class="text-center group">
+        <p class="stat-number font-serif text-5xl sm:text-6xl text-white transition-colors group-hover:text-gold-400 duration-500" data-count="24" data-suffix="/7">0</p>
+        <p class="text-[10px] text-white/30 mt-4 uppercase tracking-widest-plus font-medium">Disponibilidade</p>
       </div>
     </div>
   </div>
-  <div class="divider-gold"></div>
 </section>
 
 
 <!-- ============================================
      FEATURES
      ============================================ -->
-<section id="features" class="relative py-28 lg:py-36 overflow-hidden">
-  <div class="glow-gold-lg" style="top: 0; left: -200px;"></div>
+<section id="features" class="relative py-32 overflow-hidden">
+  <div class="glow-gold-lg" style="top: 0; left: -300px; opacity: 0.5;"></div>
 
   <div class="max-w-7xl mx-auto px-6">
-
-    <div class="max-w-xl mb-20">
-      <p class="text-[11px] font-medium uppercase tracking-widest-plus text-gold-500/60 mb-4">Funcionalidades</p>
-      <h2 class="font-serif text-4xl sm:text-5xl tracking-tight leading-tight">
-        O que oferecemos?
+    <div class="max-w-2xl mb-24 section-header">
+      <div class="inline-flex items-center gap-2 mb-6">
+        <div class="w-8 h-[1px] bg-gold-500/50"></div>
+        <p class="text-[10px] font-medium uppercase tracking-widest-plus text-gold-500/80">Arquitetura de Elite</p>
+      </div>
+      <h2 class="font-serif text-5xl sm:text-6xl tracking-tight leading-[1.1] text-white/95 reveal-text">
+        Controle absoluto sobre<br>cada centavo.
       </h2>
-      <p class="mt-5 text-white/25 text-base leading-relaxed">
-        Módulos independentes que trabalham juntos para dar visibilidade total das suas finanças.
+      <p class="mt-8 text-white/40 text-lg leading-relaxed font-light reveal-text">
+        Módulos independentes desenhados com precisão suíça, trabalhando em uníssono para garantir a gestão perfeita do seu patrimônio.
       </p>
     </div>
 
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 features-grid">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 features-grid">
 
       <!-- Transações -->
-      <div class="card-surface lg:col-span-2 p-8 sm:p-10">
-        <div class="flex items-start justify-between mb-8">
-          <div class="w-11 h-11 rounded-xl bg-gold-500/[0.07] border border-gold-500/10 flex items-center justify-center">
+      <div class="card-surface lg:col-span-2 p-10 sm:p-12 group overflow-hidden relative">
+        <div class="absolute inset-0 bg-gradient-to-br from-gold-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div class="relative z-10 flex items-start justify-between mb-10">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-500/10 to-gold-600/5 border border-gold-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(201,168,76,0.1)]">
             <svg class="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
             </svg>
           </div>
-          <span class="text-[10px] text-gold-400/50 uppercase tracking-widest-plus">Core</span>
+          <span class="text-[10px] text-gold-400/60 uppercase tracking-widest-plus border border-gold-400/20 px-3 py-1 rounded-full">Core</span>
         </div>
-        <h3 class="font-serif text-2xl mb-3">Transações</h3>
-        <p class="text-white/25 text-sm leading-relaxed mb-8">
-          Entradas e saídas com categorias, cartões vinculados, recorrência automática e parcelamento inteligente.
+        <h3 class="relative z-10 font-serif text-3xl mb-4 text-white/90 group-hover:text-white transition-colors">Transações Inteligentes</h3>
+        <p class="relative z-10 text-white/40 text-base leading-relaxed mb-10 max-w-lg">
+          Gestão de entradas e saídas com categorização avançada. Cartões vinculados, previsão de recorrências e parcelamento integrado.
         </p>
-        <div class="grid grid-cols-3 gap-3">
-          <div class="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 text-center">
-            <p class="text-xl font-semibold text-white">R$ 5.2k</p>
-            <p class="text-[10px] text-white/20 mt-1 uppercase tracking-wider">Entradas</p>
+        <div class="relative z-10 grid grid-cols-3 gap-4">
+          <div class="rounded-2xl bg-white/[0.02] border border-white/5 p-5 backdrop-blur-sm group-hover:bg-white/[0.04] transition-colors duration-500">
+            <p class="text-2xl font-serif text-white/90">R$ 52k</p>
+            <p class="text-[10px] text-white/30 mt-2 uppercase tracking-widest">Receitas</p>
           </div>
-          <div class="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 text-center">
-            <p class="text-xl font-semibold text-white">R$ 3.1k</p>
-            <p class="text-[10px] text-white/20 mt-1 uppercase tracking-wider">Saídas</p>
+          <div class="rounded-2xl bg-white/[0.02] border border-white/5 p-5 backdrop-blur-sm group-hover:bg-white/[0.04] transition-colors duration-500">
+            <p class="text-2xl font-serif text-white/90">R$ 18k</p>
+            <p class="text-[10px] text-white/30 mt-2 uppercase tracking-widest">Despesas</p>
           </div>
-          <div class="rounded-xl bg-gold-500/[0.06] border border-gold-500/10 p-4 text-center">
-            <p class="text-xl font-semibold text-gold-400">R$ 2.1k</p>
-            <p class="text-[10px] text-gold-400/40 mt-1 uppercase tracking-wider">Saldo</p>
+          <div class="rounded-2xl bg-gold-500/[0.05] border border-gold-500/15 p-5 backdrop-blur-sm group-hover:bg-gold-500/[0.08] transition-colors duration-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+            <p class="text-2xl font-serif text-gold-400">R$ 34k</p>
+            <p class="text-[10px] text-gold-400/50 mt-2 uppercase tracking-widest">Líquido</p>
           </div>
         </div>
       </div>
 
       <!-- Categorias -->
-      <div class="card-surface p-8 sm:p-10">
-        <div class="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-8">
-          <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="card-surface p-10 sm:p-12 group relative overflow-hidden">
+        <div class="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-10 group-hover:border-white/20 transition-colors duration-500">
+          <svg class="w-5 h-5 text-white/60 group-hover:text-white/90 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 6h.008v.008H6V6z"/>
           </svg>
         </div>
-        <h3 class="font-serif text-2xl mb-3">Categorias</h3>
-        <p class="text-white/25 text-sm leading-relaxed mb-6">
-          Tags personalizadas. Tudo configurável, nada hardcoded.
+        <h3 class="font-serif text-2xl mb-4 text-white/90 group-hover:text-white transition-colors">Taxonomia Customizada</h3>
+        <p class="text-white/40 text-sm leading-relaxed mb-8">
+          Sua estrutura de categorias não deve ser imposta. Crie árvores de tags complexas adaptadas à sua realidade.
         </p>
-        <div class="flex flex-wrap gap-2">
-          <span class="px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-white/40 text-xs">Alimentação</span>
-          <span class="px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-white/40 text-xs">Transporte</span>
-          <span class="px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-white/40 text-xs">Lazer</span>
-          <span class="px-3 py-1 rounded-full bg-gold-500/[0.06] border border-gold-500/10 text-gold-400/60 text-xs">Saúde</span>
+        <div class="flex flex-wrap gap-2.5">
+          <span class="px-4 py-1.5 rounded-full bg-white/[0.02] border border-white/10 text-white/50 text-[11px] font-medium tracking-wide">Family Office</span>
+          <span class="px-4 py-1.5 rounded-full bg-white/[0.02] border border-white/10 text-white/50 text-[11px] font-medium tracking-wide">Imóveis</span>
+          <span class="px-4 py-1.5 rounded-full bg-gold-500/[0.08] border border-gold-500/20 text-gold-400/80 text-[11px] font-medium tracking-wide">Investimentos</span>
         </div>
       </div>
 
       <!-- Cartões -->
-      <div class="card-surface p-8 sm:p-10">
-        <div class="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-8">
-          <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="card-surface p-10 sm:p-12 group">
+        <div class="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-10 group-hover:border-white/20 transition-colors duration-500">
+          <svg class="w-5 h-5 text-white/60 group-hover:text-white/90 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
           </svg>
         </div>
-        <h3 class="font-serif text-2xl mb-3">Cartões</h3>
-        <p class="text-white/25 text-sm leading-relaxed">
-          Cadastre seus cartões e vincule transações. Controle de gastos por cartão.
+        <h3 class="font-serif text-2xl mb-4 text-white/90 group-hover:text-white transition-colors">Gestão de Cartões</h3>
+        <p class="text-white/40 text-sm leading-relaxed">
+          Centralize as faturas de todos os seus cartões premium. Projeção de gastos e controle rigoroso de limites.
         </p>
       </div>
 
       <!-- Relatórios -->
-      <div id="reports" class="card-surface lg:col-span-2 p-8 sm:p-10">
-        <div class="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-8">
-          <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-          </svg>
-        </div>
-        <h3 class="font-serif text-2xl mb-3">Relatórios e exportação</h3>
-        <p class="text-white/25 text-sm leading-relaxed mb-8">
-          Dashboard visual com métricas e exportação em múltiplos formatos. Seus dados, sempre acessíveis.
-        </p>
-        <div class="flex gap-3">
-          <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-            <div class="w-1.5 h-1.5 rounded-full bg-gold-400/50"></div>
-            <span class="text-xs text-white/35">CSV</span>
+      <div id="reports" class="card-surface lg:col-span-2 p-10 sm:p-12 group">
+        <div class="flex flex-col sm:flex-row gap-10 items-start sm:items-center">
+          <div class="flex-1">
+            <div class="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-10 group-hover:border-white/20 transition-colors duration-500">
+              <svg class="w-5 h-5 text-white/60 group-hover:text-white/90 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+              </svg>
+            </div>
+            <h3 class="font-serif text-3xl mb-4 text-white/90 group-hover:text-white transition-colors">Data Room & Relatórios</h3>
+            <p class="text-white/40 text-sm leading-relaxed mb-8 max-w-md">
+              Dashboards institucionais e exportação blindada. Seus dados financeiros prontos para análise do seu contador ou gestor.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <div class="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors cursor-pointer">
+                <div class="w-2 h-2 rounded-full bg-gold-400/60"></div>
+                <span class="text-[13px] font-medium text-white/60">CSV</span>
+              </div>
+              <div class="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors cursor-pointer">
+                <div class="w-2 h-2 rounded-full bg-emerald-400/60"></div>
+                <span class="text-[13px] font-medium text-white/60">Excel</span>
+              </div>
+              <div class="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors cursor-pointer">
+                <div class="w-2 h-2 rounded-full bg-red-400/60"></div>
+                <span class="text-[13px] font-medium text-white/60">PDF</span>
+              </div>
+            </div>
           </div>
-          <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-            <div class="w-1.5 h-1.5 rounded-full bg-gold-400/50"></div>
-            <span class="text-xs text-white/35">Excel</span>
-          </div>
-          <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-            <div class="w-1.5 h-1.5 rounded-full bg-gold-400/50"></div>
-            <span class="text-xs text-white/35">PDF</span>
+          <!-- Decor element for report -->
+          <div class="hidden sm:block w-48 h-48 rounded-full border-[10px] border-white/[0.02] relative shadow-[inset_0_0_30px_rgba(0,0,0,0.5)] flex-shrink-0">
+            <div class="absolute inset-0 rounded-full border-[10px] border-gold-500/20" style="clip-path: polygon(50% 50%, 100% 0, 100% 100%, 0 100%);"></div>
+            <div class="absolute inset-0 rounded-full border-[10px] border-white/10" style="clip-path: polygon(50% 50%, 0 100%, 0 0, 100% 0);"></div>
           </div>
         </div>
       </div>
@@ -295,120 +334,124 @@
 <!-- ============================================
      ASSISTANT
      ============================================ -->
-<section id="assistant" class="relative py-28 lg:py-36 overflow-hidden">
-  <div class="divider-gold"></div>
-  <div class="glow-gold" style="top: 40%; right: -150px;"></div>
+<section id="assistant" class="relative py-32 lg:py-48 overflow-hidden bg-[#0a0910]">
+  <div class="divider-gold absolute top-0 w-full"></div>
+  <div class="glow-gold" style="top: 30%; right: -200px; opacity: 0.6; filter: blur(100px);"></div>
 
   <!-- Orbit decorativo -->
-  <div class="orbit-bright animate-orbit-slow w-[400px] h-[400px] hidden lg:block" style="top: 20%; right: 10%;"></div>
+  <div class="orbit-bright animate-orbit-slow w-[600px] h-[600px] hidden lg:block opacity-20" style="top: 10%; right: 5%;"></div>
 
-  <div class="relative max-w-7xl mx-auto px-6 pt-20">
-    <div class="grid lg:grid-cols-2 gap-20 items-center">
+  <div class="relative max-w-7xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-24 items-center">
 
       <!-- Texto -->
-      <div>
-        <p class="text-[11px] font-medium uppercase tracking-widest-plus text-gold-500/60 mb-4">Inteligência Artificial</p>
+      <div class="assistant-text-col">
+        <div class="inline-flex items-center gap-2 mb-6">
+          <div class="w-8 h-[1px] bg-gold-500/50"></div>
+          <p class="text-[10px] font-medium uppercase tracking-widest-plus text-gold-500/80">Inteligência Artificial Nativa</p>
+        </div>
 
-        <h2 class="font-serif text-4xl sm:text-5xl leading-tight tracking-tight">
-          Registre gastos<br>
-          <em class="text-gold-gradient not-italic">conversando.</em>
+        <h2 class="font-serif text-5xl sm:text-6xl leading-[1.1] tracking-tight text-white/95 reveal-text">
+          Um concierge para<br>
+          <em class="text-gold-gradient not-italic">seu patrimônio.</em>
         </h2>
 
-        <p class="mt-6 text-base text-white/25 max-w-md leading-relaxed">
-          Fale ou digite em linguagem natural. O assistente entende, confirma os dados e registra a transação.
+        <p class="mt-8 text-lg text-white/40 max-w-md leading-relaxed font-light reveal-text">
+          Converse com a Auri. Grave um áudio ou envie uma mensagem natural, e a inteligência artificial processará, categorizará e registrará o lançamento com precisão de auditoria.
         </p>
 
-        <div class="mt-12 space-y-6">
-          <div class="flex items-start gap-4">
-            <div class="w-9 h-9 rounded-lg bg-gold-500/[0.07] border border-gold-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg class="w-4 h-4 text-gold-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mt-14 space-y-8">
+          <div class="flex items-start gap-5 group">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-500/10 to-transparent border border-gold-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-gold-500/20 transition-colors duration-500">
+              <svg class="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
               </svg>
             </div>
             <div>
-              <p class="text-sm font-medium text-white/70">Captura por áudio</p>
-              <p class="text-sm text-white/25 mt-0.5">Grave e o Whisper transcreve automaticamente.</p>
+              <p class="text-base font-medium text-white/90">Reconhecimento de Voz Whisper</p>
+              <p class="text-sm text-white/40 mt-1.5 leading-relaxed">Transcrição perfeita em múltiplos idiomas. Grave em trânsito e deixe o sistema organizar.</p>
             </div>
           </div>
-          <div class="flex items-start gap-4">
-            <div class="w-9 h-9 rounded-lg bg-gold-500/[0.07] border border-gold-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg class="w-4 h-4 text-gold-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-start gap-5 group">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors duration-500">
+              <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
               </svg>
             </div>
             <div>
-              <p class="text-sm font-medium text-white/70">Linguagem natural</p>
-              <p class="text-sm text-white/25 mt-0.5 italic">"Gastei 80 reais de gasolina ontem"</p>
+              <p class="text-base font-medium text-white/90">Processamento de Linguagem Natural</p>
+              <p class="text-sm text-white/40 mt-1.5 leading-relaxed italic">"Comprei passagens para Paris ontem por R$ 12.000 no cartão Black"</p>
             </div>
           </div>
-          <div class="flex items-start gap-4">
-            <div class="w-9 h-9 rounded-lg bg-gold-500/[0.07] border border-gold-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg class="w-4 h-4 text-gold-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-start gap-5 group">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors duration-500">
+              <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
             <div>
-              <p class="text-sm font-medium text-white/70">Confirmação antes de salvar</p>
-              <p class="text-sm text-white/25 mt-0.5">Revise os dados extraídos antes de confirmar.</p>
+              <p class="text-base font-medium text-white/90">Auditoria Humana</p>
+              <p class="text-sm text-white/40 mt-1.5 leading-relaxed">A IA prepara o draft estruturado. Você revisa e assina digitalmente a transação.</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Chat preview -->
-      <div class="relative">
-        <div class="glow-gold" style="top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px;"></div>
-        <div class="relative card-surface p-6 sm:p-8">
-          <div class="flex items-center gap-3 mb-6 pb-5 border-b border-white/[0.04]">
-            <div class="w-8 h-8 rounded-full bg-gold-500/10 flex items-center justify-center">
-              <svg class="w-3.5 h-3.5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
-              </svg>
+      <div class="relative assistant-chat-col">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gold-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+        <div class="relative bg-[#0d0c14]/80 backdrop-blur-3xl border border-white/5 shadow-2xl rounded-3xl p-8 sm:p-10 transform-gpu rotate-y-[-5deg] rotate-x-[5deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-700">
+          
+          <div class="flex items-center justify-between mb-8 pb-6 border-b border-white/[0.04]">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-[0_0_15px_rgba(201,168,76,0.3)]">
+                <svg class="w-5 h-5 text-dark-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                </svg>
+              </div>
+              <div>
+                <span class="text-base font-medium text-white/90">Auri Assistant</span>
+                <p class="text-[10px] text-emerald-400/80 uppercase tracking-widest mt-0.5">Online</p>
+              </div>
             </div>
-            <div>
-              <span class="text-sm font-medium text-white/50">Assistente Auri</span>
-            </div>
+            <div class="w-2 h-2 rounded-full bg-white/20"></div>
           </div>
 
-          <div class="space-y-4">
+          <div class="space-y-6">
             <div class="flex justify-end">
-              <div class="bg-gold-500 text-dark-950 px-4 py-2.5 rounded-2xl rounded-br-md max-w-[80%]">
-                <p class="text-sm font-medium">Paguei 150 reais de luz esse mês</p>
+              <div class="bg-gradient-to-br from-gold-500 to-gold-600 text-dark-950 px-5 py-3.5 rounded-2xl rounded-tr-sm max-w-[85%] shadow-lg shadow-gold-500/10 transform transition-transform hover:-translate-y-1">
+                <p class="text-[15px] font-medium leading-relaxed">Paguei 2.500 de condomínio hoje cedo, tira da conta corrente.</p>
               </div>
             </div>
 
             <div class="flex justify-start">
-              <div class="bg-white/[0.03] border border-white/[0.06] text-white/60 px-4 py-2.5 rounded-2xl rounded-bl-md max-w-[85%]">
-                <p class="text-sm">Entendi! Verifique os dados:</p>
+              <div class="bg-white/[0.03] border border-white/5 text-white/70 px-5 py-3.5 rounded-2xl rounded-tl-sm max-w-[85%] backdrop-blur-sm">
+                <p class="text-[15px] leading-relaxed">Perfeito. Analisei a transação. Por favor, confirme os detalhes para o registro:</p>
               </div>
             </div>
 
-            <div class="bg-white/[0.02] rounded-2xl p-5 border border-white/[0.04]">
-              <div class="space-y-3 text-sm">
-                <div class="flex justify-between items-center">
-                  <span class="text-white/20">Nome</span>
-                  <span class="text-white/70 font-medium">Conta de Luz</span>
+            <div class="bg-black/40 rounded-2xl p-6 border border-white/5 shadow-inner">
+              <div class="space-y-4 text-[14px]">
+                <div class="flex justify-between items-center border-b border-white/[0.02] pb-2">
+                  <span class="text-white/30 font-medium">Lançamento</span>
+                  <span class="text-white/90 font-serif">Condomínio</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/[0.02] pb-2">
+                  <span class="text-white/30 font-medium">Valor</span>
+                  <span class="text-white/90 font-mono tracking-wide">R$ 2.500,00</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/[0.02] pb-2">
+                  <span class="text-white/30 font-medium">Fluxo</span>
+                  <span class="text-red-400/90 font-medium bg-red-400/10 px-2 py-0.5 rounded">Saída</span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-white/20">Valor</span>
-                  <span class="text-white/70 font-medium">R$ 150,00</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-white/20">Tipo</span>
-                  <span class="text-red-400/70 font-medium">Saída</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-white/20">Categoria</span>
-                  <span class="text-white/70 font-medium">Moradia</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-white/20">Data</span>
-                  <span class="text-white/70 font-medium">08/04/2026</span>
+                  <span class="text-white/30 font-medium">Conta</span>
+                  <span class="text-white/90">Conta Corrente Principal</span>
                 </div>
               </div>
-              <div class="flex gap-2 mt-5">
-                <button class="flex-1 py-2.5 rounded-xl bg-gold-500 text-dark-950 text-xs font-semibold hover:bg-gold-400 transition-colors">Confirmar</button>
-                <button class="flex-1 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-white/30 text-xs font-medium hover:text-white/50 transition-colors">Alterar</button>
+              <div class="flex gap-3 mt-8">
+                <button class="flex-1 py-3 rounded-xl bg-gold-500 text-dark-950 text-[13px] font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/20 magnetic">Confirmar Lançamento</button>
+                <button class="flex-1 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white/80 transition-colors">Ajustar</button>
               </div>
             </div>
           </div>
@@ -423,73 +466,124 @@
 <!-- ============================================
      CTA
      ============================================ -->
-<section class="py-28 lg:py-40 relative overflow-hidden">
-  <div class="glow-gold-lg" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+<section class="py-32 lg:py-48 relative overflow-hidden border-t border-white/[0.04]">
+  <div class="glow-gold-lg" style="top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.8;"></div>
 
   <!-- Orbit rings -->
-  <div class="orbit animate-orbit-slow w-[300px] h-[300px]" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
-  <div class="orbit animate-orbit-slower w-[500px] h-[500px]" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+  <div class="orbit animate-orbit-slow w-[400px] h-[400px] opacity-40" style="top: 50%; left: 50%; transform: translate(-50%, -50%); border-color: rgba(201,168,76,0.15)"></div>
+  <div class="orbit animate-orbit-slower w-[700px] h-[700px] opacity-20" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
 
-  <div class="relative max-w-3xl mx-auto px-6 text-center">
-    <p class="text-[11px] font-medium uppercase tracking-widest-plus text-gold-500/50 mb-6">Comece hoje</p>
-    <h2 class="font-serif text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-tight">
-      Organize suas finanças<br>
-      <em class="text-gold-gradient not-italic">com elegância.</em>
+  <div class="relative max-w-4xl mx-auto px-6 text-center z-10">
+    <div class="inline-flex items-center gap-2 mb-8 justify-center w-full">
+      <div class="w-6 h-[1px] bg-gold-500/50"></div>
+      <p class="text-[11px] font-medium uppercase tracking-widest-plus text-gold-500/80">O Convite</p>
+      <div class="w-6 h-[1px] bg-gold-500/50"></div>
+    </div>
+    <h2 class="font-serif text-5xl sm:text-6xl lg:text-[5.5rem] tracking-tight leading-[1.05] text-white/95 reveal-text">
+      Eleve o padrão da sua<br>
+      <em class="text-gold-gradient not-italic">gestão financeira.</em>
     </h2>
-    <p class="mt-6 text-white/25 text-lg max-w-md mx-auto leading-relaxed">
-      Crie sua conta em segundos. Sem cartão, sem compromisso.
+    <p class="mt-8 text-white/40 text-xl max-w-2xl mx-auto leading-relaxed font-light reveal-text">
+      Junte-se ao seleto grupo que utiliza a Auri para uma visão completa, elegante e inteligente do próprio patrimônio.
     </p>
-    <div class="mt-12 flex flex-wrap justify-center gap-5">
-      <a href="#" class="group inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-gold-500 text-dark-950 font-semibold hover:bg-gold-400 transition-all duration-400 shadow-lg shadow-gold-500/10">
-        Criar conta gratuita
-        <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="mt-14 flex flex-col sm:flex-row justify-center gap-6 opacity-0 cta-buttons">
+      <a href="{% url 'accounts:register' %}" class="magnetic group inline-flex items-center justify-center gap-3 px-10 py-4 rounded-full bg-gold-500 text-dark-950 font-semibold text-base transition-all duration-500 hover:bg-gold-400 shadow-[0_0_40px_rgba(201,168,76,0.15)] hover:shadow-[0_0_60px_rgba(201,168,76,0.3)]">
+        Criar Conta Exclusiva
+        <svg class="w-5 h-5 transition-transform duration-500 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
         </svg>
       </a>
-      <a href="#" class="inline-flex items-center px-8 py-4 rounded-full border border-white/[0.06] text-white/30 font-medium hover:border-white/10 hover:text-white/50 transition-all duration-400">
-        Já tenho conta
+      <a href="{% url 'accounts:login' %}" class="magnetic inline-flex items-center justify-center px-10 py-4 rounded-full border border-white/10 bg-white/[0.01] text-white/50 font-medium hover:bg-white/[0.03] hover:text-white/90 hover:border-white/20 transition-all duration-500">
+        Entrar no Sistema
       </a>
     </div>
   </div>
 </section>
 
+{% endblock %}
 
-<!-- ============================================
-     GSAP Animations
-     ============================================ -->
+{% block extra_scripts %}
+<!-- Studio Freight Lenis for Smooth Scrolling -->
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+<!-- SplitType for elegant text animations -->
+<script src="https://unpkg.com/split-type"></script>
+
 <script>
+  // 1. Initialize Smooth Scrolling (Lenis)
+  const lenis = new Lenis();
+
+  lenis.on('scroll', ScrollTrigger.update);
+
+  gsap.ticker.add((time) => {
+    lenis.raf(time * 1000);
+  });
+
+  gsap.ticker.lagSmoothing(0);
+
+  // 2. Register GSAP Plugins
   gsap.registerPlugin(ScrollTrigger);
 
-  /* --- Hero entrance --- */
-  const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+  // 3. Magnetic Button Effect
+  const magneticElements = document.querySelectorAll('.magnetic');
+  magneticElements.forEach((el) => {
+    el.addEventListener('mousemove', (e) => {
+      const pos = el.getBoundingClientRect();
+      const x = (e.clientX - pos.left - pos.width / 2) * 0.3;
+      const y = (e.clientY - pos.top - pos.height / 2) * 0.3;
+      gsap.to(el, { x, y, duration: 0.8, ease: 'power3.out' });
+    });
+    el.addEventListener('mouseleave', () => {
+      gsap.to(el, { x: 0, y: 0, duration: 1.2, ease: 'elastic.out(1, 0.3)' });
+    });
+  });
+
+  // 4. Hero Animations with SplitType
+  const heroTitle = new SplitType('#hero-title', { types: 'lines, words' });
+  
+  const heroTl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+  
   heroTl
-    .to('#hero-label', { opacity: 1, duration: 0.8 }, 0.3)
-    .fromTo('#hero-title', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1.1 }, 0.4)
-    .fromTo('#hero-desc', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9 }, 0.7)
-    .fromTo('#hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8 }, 0.9)
-    .fromTo('#card-gold', { opacity: 0, x: 100, rotateY: -30, rotateX: 18 },
-      { opacity: 1, x: 0, rotateY: -15, rotateX: 10, duration: 1.4, ease: 'power3.out' }, 0.5)
-    .fromTo('#card-summary', { opacity: 0, x: 70, rotateY: -22, rotateX: 12 },
-      { opacity: 1, x: 0, rotateY: -10, rotateX: 6, duration: 1.4, ease: 'power3.out' }, 0.7)
-    .fromTo('#card-badge', { opacity: 0, y: -15, scale: 0.95 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.7 }, 1.2);
+    .to('#hero-label', { opacity: 1, duration: 1 }, 0.2)
+    .fromTo(heroTitle.words, 
+      { opacity: 0, y: 40, rotateX: -30 }, 
+      { opacity: 1, y: 0, rotateX: 0, duration: 1.5, stagger: 0.04, ease: 'power4.out' }, 
+      0.3
+    )
+    .fromTo('#hero-desc', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1.5 }, 0.8)
+    .fromTo('#hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1.5 }, 1)
+    .fromTo('#card-gold', { opacity: 0, x: 120, y: 40, rotateY: -35, rotateX: 20, scale: 0.8 },
+      { opacity: 1, x: 0, y: 0, rotateY: -15, rotateX: 10, scale: 1, duration: 2, ease: 'expo.out' }, 0.5)
+    .fromTo('#card-summary', { opacity: 0, x: 80, y: 30, rotateY: -25, rotateX: 15, scale: 0.8 },
+      { opacity: 1, x: 0, y: 0, rotateY: -10, rotateX: 6, scale: 1, duration: 2, ease: 'expo.out' }, 0.7)
+    .fromTo('#card-badge', { opacity: 0, y: -20, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 1.5 }, 1.4);
 
-  /* --- Card floating --- */
-  gsap.to('#card-gold', { y: '-=10', duration: 3.5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2 });
-  gsap.to('#card-summary', { y: '-=7', duration: 4, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2.5 });
-  gsap.to('#card-badge', { y: '-=5', duration: 3, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2 });
+  // Card floating & parallax
+  gsap.to('#card-gold', { y: '-=15', duration: 4, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2 });
+  gsap.to('#card-summary', { y: '-=10', duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2.2 });
+  gsap.to('#card-badge', { y: '-=6', duration: 3.5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2.5 });
 
-  /* --- Mouse parallax on cards (desktop) --- */
   if (window.innerWidth > 1024) {
     document.addEventListener('mousemove', (e) => {
       const xN = (e.clientX / window.innerWidth - 0.5) * 2;
       const yN = (e.clientY / window.innerHeight - 0.5) * 2;
-      gsap.to('#card-gold', { rotateY: -15 + xN * 5, rotateX: 10 - yN * 4, duration: 1.2, ease: 'power2.out' });
-      gsap.to('#card-summary', { rotateY: -10 + xN * 3, rotateX: 6 - yN * 2.5, duration: 1.2, ease: 'power2.out' });
+      gsap.to('#card-gold', { rotateY: -15 + xN * 8, rotateX: 10 - yN * 6, duration: 1.5, ease: 'power2.out' });
+      gsap.to('#card-summary', { rotateY: -10 + xN * 5, rotateX: 6 - yN * 4, duration: 1.5, ease: 'power2.out' });
     });
   }
 
-  /* --- Stats counter --- */
+  // 5. Reveal Texts on Scroll
+  const revealTexts = document.querySelectorAll('.reveal-text');
+  revealTexts.forEach(text => {
+    const split = new SplitType(text, { types: 'lines' });
+    gsap.fromTo(split.lines,
+      { opacity: 0, y: 30, rotateX: -15 },
+      { opacity: 1, y: 0, rotateX: 0, duration: 1.2, stagger: 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: text, start: 'top 85%', once: true } }
+    );
+  });
+
+  // 6. Stats Counter
   document.querySelectorAll('.stat-number[data-count]').forEach(el => {
     const target = parseInt(el.dataset.count);
     const suffix = el.dataset.suffix || '';
@@ -497,62 +591,51 @@
       trigger: el, start: 'top 85%', once: true,
       onEnter: () => {
         gsap.fromTo(el, { innerText: 0 }, {
-          innerText: target, duration: 2, ease: 'power2.out', snap: { innerText: 1 },
+          innerText: target, duration: 2.5, ease: 'expo.out', snap: { innerText: 1 },
           onUpdate() { el.textContent = Math.round(gsap.getProperty(el, 'innerText')) + suffix; },
         });
       },
     });
   });
 
-  /* --- Features stagger --- */
+  // 7. Features Grid Stagger
   gsap.utils.toArray('.features-grid .card-surface').forEach((card, i) => {
     gsap.fromTo(card,
-      { opacity: 0, y: 50 },
-      { opacity: 1, y: 0, duration: 0.9, delay: i * 0.08, ease: 'power3.out',
-        scrollTrigger: { trigger: card, start: 'top 87%', once: true } }
+      { opacity: 0, y: 60 },
+      { opacity: 1, y: 0, duration: 1.2, delay: i * 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: card, start: 'top 85%', once: true } }
     );
   });
 
-  /* --- Section headings parallax --- */
-  gsap.utils.toArray('section h2').forEach(h2 => {
-    gsap.fromTo(h2, { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 1, ease: 'power3.out',
-        scrollTrigger: { trigger: h2, start: 'top 85%', once: true } });
+  // 8. Assistant Section Animations
+  gsap.utils.toArray('.assistant-text-col .flex').forEach((item, i) => {
+    gsap.fromTo(item, { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 1, delay: i * 0.15, ease: 'power3.out',
+        scrollTrigger: { trigger: '.assistant-text-col', start: 'top 75%', once: true } });
   });
 
-  /* --- Assistant items --- */
-  gsap.utils.toArray('#assistant .flex.items-start.gap-4').forEach((item, i) => {
-    gsap.fromTo(item, { opacity: 0, x: -25 },
-      { opacity: 1, x: 0, duration: 0.6, delay: i * 0.12, ease: 'power2.out',
-        scrollTrigger: { trigger: item, start: 'top 88%', once: true } });
-  });
-
-  /* --- Chat preview --- */
-  const chatCard = document.querySelector('#assistant .card-surface');
+  const chatCard = document.querySelector('.assistant-chat-col > div.relative');
   if (chatCard) {
-    gsap.fromTo(chatCard, { opacity: 0, y: 50, scale: 0.97 },
-      { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out',
-        scrollTrigger: { trigger: chatCard, start: 'top 75%', once: true } });
+    gsap.fromTo(chatCard, { opacity: 0, y: 60, rotateX: 10, rotateY: -10 },
+      { opacity: 1, y: 0, rotateX: 5, rotateY: -5, duration: 1.5, ease: 'expo.out',
+        scrollTrigger: { trigger: chatCard, start: 'top 80%', once: true } });
   }
 
-  /* --- Parallax depth on scroll (orbits, glows) --- */
+  // 9. Bottom CTA Animation
+  ScrollTrigger.create({
+    trigger: 'section:last-of-type', start: 'top 75%', once: true,
+    onEnter: () => {
+      gsap.to('.cta-buttons', { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: 'expo.out' });
+    },
+  });
+
+  // Parallax for glows
   gsap.utils.toArray('.glow-gold, .glow-gold-lg').forEach(glow => {
     gsap.to(glow, {
-      y: -60,
-      scrollTrigger: { trigger: glow, start: 'top bottom', end: 'bottom top', scrub: 1.5 },
+      y: -100,
+      scrollTrigger: { trigger: glow, start: 'top bottom', end: 'bottom top', scrub: 1 },
     });
   });
 
-  /* --- CTA --- */
-  ScrollTrigger.create({
-    trigger: 'section:last-of-type h2', start: 'top 82%', once: true,
-    onEnter: () => {
-      gsap.fromTo('section:last-of-type h2', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1, ease: 'power3.out' });
-      gsap.fromTo('section:last-of-type > div > div > p:first-of-type', { opacity: 0 }, { opacity: 1, duration: 0.8, delay: 0.2 });
-      gsap.fromTo('section:last-of-type p:last-of-type', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.3 });
-      gsap.fromTo('section:last-of-type .flex.flex-wrap', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.7, delay: 0.45 });
-    },
-  });
 </script>
-
 {% endblock %}
