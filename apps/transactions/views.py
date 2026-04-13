@@ -32,13 +32,21 @@ class TransactionListView(LoginRequiredMixin, View):
     template_name = "transactions/transaction_list.html"
 
     def get(self, request):
+        from datetime import date
+        import calendar
+
+        # Define data inicial/final padrão (Mês atual) se não houver filtro na URL
+        hoje = date.today()
+        primeiro_dia = hoje.replace(day=1)
+        ultimo_dia = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
+
         # Extrai filtros dos parâmetros de query
         filtros = {
             "type": request.GET.get("type", ""),
             "category_id": request.GET.get("category_id", ""),
             "card_id": request.GET.get("card_id", ""),
-            "date_start": request.GET.get("date_start", ""),
-            "date_end": request.GET.get("date_end", ""),
+            "date_start": request.GET.get("date_start", primeiro_dia.strftime("%Y-%m-%d")),
+            "date_end": request.GET.get("date_end", ultimo_dia.strftime("%Y-%m-%d")),
             "status": request.GET.get("status", ""),
         }
 

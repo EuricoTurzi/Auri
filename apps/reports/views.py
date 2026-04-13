@@ -20,9 +20,17 @@ from apps.reports.services import (
 
 def _extract_filters(request):
     """Extrai filtros dos parâmetros GET."""
+    from datetime import date
+    import calendar
+
+    # Define data inicial/final padrão (Mês atual)
+    hoje = date.today()
+    primeiro_dia = hoje.replace(day=1)
+    ultimo_dia = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
+
     filters = {}
-    period_start = request.GET.get("period_start", "")
-    period_end = request.GET.get("period_end", "")
+    period_start = request.GET.get("period_start", primeiro_dia.strftime("%Y-%m-%d"))
+    period_end = request.GET.get("period_end", ultimo_dia.strftime("%Y-%m-%d"))
     type_ = request.GET.get("type", "")
     category_ids = request.GET.getlist("category_ids")
     card_ids = request.GET.getlist("card_ids")
