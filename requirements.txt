@@ -31,8 +31,8 @@ factory-boy>=3.3
 requests>=2.31
 
 # Date
-python-dateutil=>2.8
+python-dateutil
 
 # Exports
-openpyxl=>3.0
-weasyprint=>57.0
+openpyxl
+weasyprint
