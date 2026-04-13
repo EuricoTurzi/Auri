@@ -1,83 +1,155 @@
 {% extends "base.html" %}
 
-{% block title %}Criar conta{% endblock %}
+{% block title %}Solicitar Acesso — Auri Private Banking{% endblock %}
 
 {% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
 
+{% block extra_head %}
+<style>
+  html.lenis { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-stopped { overflow: hidden; }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="min-h-[100dvh] flex items-center justify-center relative overflow-hidden px-6">
+<!-- Noise Overlay -->
 
-  <!-- Glow decorativo -->
-  <div class="glow-gold opacity-30" style="top: 10%; left: 50%; transform: translateX(-50%);"></div>
+<section class="min-h-[100dvh] flex items-center justify-center relative overflow-hidden px-6 py-20">
 
-  <div class="relative w-full max-w-md">
+  <!-- Elementos Decorativos -->
+  <div class="orbit animate-orbit-slow w-[700px] h-[700px] opacity-10" style="bottom: -20%; right: -10%;"></div>
+  <div class="glow-gold opacity-15" style="top: 10%; left: -5%; filter: blur(150px); width: 600px; height: 600px;"></div>
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[400px] bg-gradient-to-b from-gold-900/5 to-transparent pointer-events-none"></div>
 
-    <!-- Logo -->
-    <div class="text-center mb-10">
-      <a href="{% url 'landing' %}" class="font-serif text-3xl text-gold-400 hover:text-gold-300 transition-colors">Auri</a>
-      <p class="mt-2 text-sm text-white/25">Crie sua conta</p>
+  <div class="relative w-full max-w-md z-10">
+
+    <!-- Logo & Header -->
+    <div class="text-center mb-12">
+      <a href="{% url 'landing' %}" class="magnetic inline-block font-serif text-4xl text-gold-gradient hover:scale-105 transition-transform duration-500">Auri</a>
+      <div class="mt-6 space-y-2">
+        <h2 id="register-title" class="font-serif text-2xl text-white/90 tracking-tight">Solicitar Novo Acesso</h2>
+        <p id="register-subtitle" class="text-sm text-white/30 font-light tracking-wide uppercase">Início de Relacionamento</p>
+      </div>
     </div>
 
     <!-- Mensagens -->
     {% if messages %}
-    <div class="mb-6 space-y-2">
+    <div class="mb-8 space-y-3 animate-fade-in">
       {% for message in messages %}
-      <div class="px-4 py-3 rounded-xl text-sm
-        {% if message.tags == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
-        {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
-        {% else %}bg-white/5 text-white/60 border border-white/10{% endif %}">
-        {{ message }}
+      <div class="px-5 py-3.5 rounded-2xl text-sm backdrop-blur-md border
+        {% if message.tags == 'success' %}bg-emerald-500/5 text-emerald-400/90 border-emerald-500/20
+        {% elif message.tags == 'error' %}bg-red-500/5 text-red-400/90 border-red-500/20
+        {% else %}bg-white/5 text-white/60 border-white/10{% endif %}">
+        <div class="flex items-center gap-3">
+          <span class="w-1.5 h-1.5 rounded-full {% if message.tags == 'success' %}bg-emerald-400{% elif message.tags == 'error' %}bg-red-400{% else %}bg-white/40{% endif %}"></span>
+          {{ message }}
+        </div>
       </div>
       {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Formulário -->
-    <form method="post" class="space-y-5">
-      {% csrf_token %}
+    <!-- Card de Registro -->
+    <div class="card-surface p-8 sm:p-10 backdrop-blur-3xl shadow-2xl border-white/5 relative overflow-hidden group">
+      <div class="absolute inset-0 bg-gradient-to-br from-gold-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+      
+      <form method="post" class="space-y-6 relative z-10">
+        {% csrf_token %}
 
-      <div>
-        <label for="id_nickname" class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">Nickname</label>
-        <input type="text" name="nickname" id="id_nickname" required autofocus maxlength="50"
-          value="{{ form.nickname.value|default:'' }}"
-          placeholder="seu_nickname"
-          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
-        {% if form.nickname.errors %}
-        <p class="mt-1 text-xs text-red-400">{{ form.nickname.errors.0 }}</p>
-        {% endif %}
-        <p class="mt-1 text-[11px] text-white/15">Letras, números, underscore e hífen</p>
+        <div class="space-y-2">
+          <label for="id_nickname" class="block text-[10px] font-medium uppercase tracking-widest-plus text-gold-400/60 ml-1">Identificador (Nickname)</label>
+          <input type="text" name="nickname" id="id_nickname" required autofocus maxlength="50"
+            value="{{ form.nickname.value|default:'' }}"
+            placeholder="ex: artur_silva"
+            class="w-full px-5 py-4 rounded-2xl bg-white/[0.02] border border-white/10 text-white placeholder-white/10 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all duration-500 hover:border-white/20">
+          <p class="mt-2 text-[10px] text-white/10 italic ml-1 tracking-wide">Apenas letras, números, underscore e hífen.</p>
+          {% if form.nickname.errors %}
+          <p class="mt-1 text-[11px] text-red-400/80 ml-1">{{ form.nickname.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="space-y-2">
+          <label for="id_email" class="block text-[10px] font-medium uppercase tracking-widest-plus text-gold-400/60 ml-1">E-mail Institucional</label>
+          <input type="email" name="email" id="id_email" required
+            value="{{ form.email.value|default:'' }}"
+            placeholder="contato@exemplo.com"
+            class="w-full px-5 py-4 rounded-2xl bg-white/[0.02] border border-white/10 text-white placeholder-white/10 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all duration-500 hover:border-white/20">
+          {% if form.email.errors %}
+          <p class="mt-1 text-[11px] text-red-400/80 ml-1">{{ form.email.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="pt-2">
+          <button type="submit"
+            class="magnetic w-full py-4 rounded-2xl bg-gold-500 text-dark-950 font-bold text-sm hover:bg-gold-400 transition-all duration-500 shadow-lg shadow-gold-500/10 hover:shadow-gold-500/20 flex items-center justify-center gap-2 group/btn">
+            <span>Solicitar Credenciais</span>
+            <svg class="w-4 h-4 transition-transform duration-500 group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-8 pt-6 border-t border-white/[0.04] relative z-10 text-center">
+        <p class="text-[11px] text-white/20 leading-relaxed font-light">
+          Uma senha temporária e instruções de acesso serão enviadas ao seu e-mail após a validação do sistema.
+        </p>
       </div>
-
-      <div>
-        <label for="id_email" class="block text-[11px] font-medium uppercase tracking-widest-plus text-white/40 mb-2">E-mail</label>
-        <input type="email" name="email" id="id_email" required
-          value="{{ form.email.value|default:'' }}"
-          placeholder="seu@email.com"
-          class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white placeholder-white/20 text-sm focus:outline-none focus:border-gold-500/40 focus:ring-1 focus:ring-gold-500/20 transition-all">
-        {% if form.email.errors %}
-        <p class="mt-1 text-xs text-red-400">{{ form.email.errors.0 }}</p>
-        {% endif %}
-      </div>
-
-      <button type="submit"
-        class="w-full py-3.5 rounded-xl bg-gold-500 text-dark-950 font-semibold text-sm hover:bg-gold-400 transition-all duration-300 shadow-lg shadow-gold-500/10">
-        Criar conta
-      </button>
-    </form>
-
-    <p class="text-center mt-4 text-xs text-white/20">
-      Você receberá uma senha temporária por e-mail.
-    </p>
+    </div>
 
     <!-- Link login -->
-    <p class="text-center mt-8 text-sm text-white/25">
-      Já tem uma conta?
-      <a href="{% url 'accounts:login' %}" class="text-gold-400/70 hover:text-gold-400 transition-colors underline underline-offset-4 decoration-gold-400/20">
-        Entrar
-      </a>
-    </p>
+    <div class="text-center mt-10 space-y-4 animate-fade-in-up">
+      <p class="text-sm text-white/20 font-light">
+        Já possui acesso ao sistema?
+        <a href="{% url 'accounts:login' %}" class="text-gold-400/60 hover:text-gold-400 transition-colors underline underline-offset-8 decoration-gold-400/10 hover:decoration-gold-400/40 tracking-wide ml-1">
+          Entrar agora
+        </a>
+      </p>
+    </div>
 
   </div>
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+<script src="https://unpkg.com/split-type"></script>
+
+<script>
+  // Lenis Smooth Scroll
+  const lenis = new Lenis();
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // Magnetic Effect
+  const magneticElements = document.querySelectorAll('.magnetic');
+  magneticElements.forEach((el) => {
+    el.addEventListener('mousemove', (e) => {
+      const pos = el.getBoundingClientRect();
+      const x = (e.clientX - pos.left - pos.width / 2) * 0.3;
+      const y = (e.clientY - pos.top - pos.height / 2) * 0.3;
+      gsap.to(el, { x, y, duration: 0.8, ease: 'power3.out' });
+    });
+    el.addEventListener('mouseleave', () => {
+      gsap.to(el, { x: 0, y: 0, duration: 1.2, ease: 'elastic.out(1, 0.3)' });
+    });
+  });
+
+  // Entrance Animations
+  const title = new SplitType('#register-title', { types: 'chars' });
+  const subtitle = new SplitType('#register-subtitle', { types: 'chars' });
+
+  const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+  tl.from('.orbit', { opacity: 0, scale: 0.9, duration: 2 })
+    .from(title.chars, { opacity: 0, y: 20, rotateX: -90, stagger: 0.02, duration: 1 }, 0.5)
+    .from(subtitle.chars, { opacity: 0, x: -10, stagger: 0.01, duration: 1 }, 0.8)
+    .from('.card-surface', { opacity: 0, y: 40, duration: 1.2, ease: 'expo.out' }, 1)
+    .from('.animate-fade-in-up', { opacity: 0, y: 20, duration: 1 }, 1.5);
+</script>
 {% endblock %}
