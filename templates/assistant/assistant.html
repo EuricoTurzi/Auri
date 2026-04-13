@@ -5,6 +5,15 @@
 {% block footer %}{% endblock %}
 
 {% block content %}
+<style>
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+  .animate-wave {
+    animation: wave 1s ease-in-out infinite;
+  }
+</style>
 <div class="min-h-screen bg-dark-950 flex flex-col px-4 pt-28 pb-6 md:px-6 md:pb-10">
   <div class="max-w-3xl mx-auto w-full flex flex-col flex-1">
 
@@ -33,33 +42,26 @@
           style="min-height: 320px; max-height: 480px;">
 
           <!-- Mensagem de boas-vindas -->
-          <div class="flex items-start gap-2.5" id="welcome-message">
-            <div class="w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-              </svg>
-            </div>
-            <div class="max-w-sm px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-700/60 border border-white/[0.06]">
-              <p class="text-sm text-white/70 leading-relaxed">
-                Olá! Sou o assistente Auri. Você pode me dizer ou digitar uma transação, por exemplo:<br>
-                <span class="text-gold-400/80 text-xs mt-1 block">"Paguei R$ 50 no supermercado hoje"</span>
+          <div class="flex justify-start" id="welcome-message">
+            <div class="bg-white/[0.03] border border-white/5 text-white/70 px-5 py-3.5 rounded-2xl rounded-tl-sm max-w-[85%] backdrop-blur-sm">
+              <p class="text-[15px] leading-relaxed">
+                Olá! Sou o assistente Auri. Você pode me dizer ou digitar uma transação, por exemplo:
+                <span class="text-gold-400/80 text-sm mt-1.5 block font-medium">"Paguei R$ 50 no supermercado hoje"</span>
               </p>
             </div>
           </div>
 
           <!-- Indicador de digitação (loading) -->
-          <div id="typing-indicator" class="hidden flex items-start gap-2.5">
-            <div class="w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-              </svg>
-            </div>
-            <div class="max-w-sm px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-700/60 border border-white/[0.06]">
-              <div class="flex gap-1.5 items-center h-5">
-                <span class="w-2 h-2 rounded-full bg-gold-400/50 animate-bounce" style="animation-delay: 0ms"></span>
-                <span class="w-2 h-2 rounded-full bg-gold-400/50 animate-bounce" style="animation-delay: 150ms"></span>
-                <span class="w-2 h-2 rounded-full bg-gold-400/50 animate-bounce" style="animation-delay: 300ms"></span>
+          <div id="typing-indicator" class="hidden flex justify-start mb-2 transition-all duration-300">
+            <div class="bg-white/[0.03] border border-white/5 px-5 py-4 rounded-2xl rounded-tl-sm max-w-[85%] backdrop-blur-sm flex items-center gap-3">
+              <div class="flex items-center gap-[3px] h-4">
+                <span class="w-1 bg-gold-400/60 rounded-full animate-wave h-full bg-gradient-to-t from-gold-500 to-gold-300 shadow-[0_0_8px_rgba(201,168,76,0.5)]"></span>
+                <span class="w-1 bg-gold-400/60 rounded-full animate-wave h-full bg-gradient-to-t from-gold-500 to-gold-300 shadow-[0_0_8px_rgba(201,168,76,0.5)]" style="animation-delay: 0.2s"></span>
+                <span class="w-1 bg-gold-400/60 rounded-full animate-wave h-full bg-gradient-to-t from-gold-500 to-gold-300 shadow-[0_0_8px_rgba(201,168,76,0.5)]" style="animation-delay: 0.4s"></span>
+                <span class="w-1 bg-gold-400/60 rounded-full animate-wave h-full bg-gradient-to-t from-gold-500 to-gold-300 shadow-[0_0_8px_rgba(201,168,76,0.5)]" style="animation-delay: 0.6s"></span>
+                <span class="w-1 bg-gold-400/60 rounded-full animate-wave h-full bg-gradient-to-t from-gold-500 to-gold-300 shadow-[0_0_8px_rgba(201,168,76,0.5)]" style="animation-delay: 0.8s"></span>
               </div>
+              <span id="typing-text" class="text-[13px] text-white/50 font-medium tracking-wide">Auri está processando...</span>
             </div>
           </div>
 
@@ -145,6 +147,7 @@
   var currentPreviewData = null;
   var mediaRecorder = null;
   var audioChunks = [];
+  var isRecordingCancelled = false;
 
   // ─── Helpers de CSRF ────────────────────────────────────────────
   function getCsrfToken() {
@@ -167,24 +170,18 @@
     var isUser = sender === 'user';
 
     var wrapper = document.createElement('div');
-    wrapper.className = 'flex items-start gap-2.5' + (isUser ? ' justify-end' : '');
-
-    if (!isUser) {
-      var avatar = document.createElement('div');
-      avatar.className = 'w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5';
-      avatar.innerHTML = '<svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>';
-      wrapper.appendChild(avatar);
-    }
+    wrapper.className = isUser ? 'flex justify-end mb-2' : 'flex justify-start mb-2';
 
     var bubble = document.createElement('div');
     bubble.className = isUser
-      ? 'max-w-sm px-4 py-3 rounded-2xl rounded-tr-sm bg-gold-500/15 border border-gold-500/20'
-      : 'max-w-sm px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-700/60 border border-white/[0.06]';
+      ? 'bg-gradient-to-br from-gold-500 to-gold-600 text-dark-950 px-5 py-3.5 rounded-2xl rounded-tr-sm max-w-[85%] shadow-lg shadow-gold-500/10 transform transition-transform hover:-translate-y-1'
+      : 'bg-white/[0.03] border border-white/5 text-white/70 px-5 py-3.5 rounded-2xl rounded-tl-sm max-w-[85%] backdrop-blur-sm';
 
     var p = document.createElement('p');
-    p.className = 'text-sm leading-relaxed ' + (isUser ? 'text-white/80' : 'text-white/70');
+    p.className = 'text-[15px] leading-relaxed' + (isUser ? ' font-medium' : '');
     p.textContent = text;
     bubble.appendChild(p);
+
     wrapper.appendChild(bubble);
     container.appendChild(wrapper);
 
@@ -267,52 +264,39 @@
 
     var wrapper = document.createElement('div');
     wrapper.id = 'chat-preview-card';
-    wrapper.className = 'flex items-start gap-2.5';
-
-    var avatar = document.createElement('div');
-    avatar.className = 'w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5';
-    avatar.innerHTML = '<svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>';
-    wrapper.appendChild(avatar);
-
-    var card = document.createElement('div');
-    card.className = 'flex-1 p-4 rounded-2xl rounded-tl-sm bg-dark-800/60 border border-gold-500/20';
+    wrapper.className = 'bg-black/40 rounded-2xl p-6 border border-white/5 shadow-inner mb-4 ml-8 max-w-[85%]';
 
     var cardRowHTML = cardName
-      ? '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Cartão</span><span class="text-xs text-white/70">' + cardName + '</span></div>'
+      ? '<div class="flex justify-between items-center border-b border-white/[0.02] pb-2"><span class="text-white/30 font-medium">Cartão</span><span class="text-white/90 text-right">' + cardName + '</span></div>'
       : '';
     var descRowHTML = tx.description
-      ? '<div><span class="text-[11px] text-white/30 uppercase tracking-wider block mb-1">Descrição</span><p class="text-xs text-white/50">' + tx.description + '</p></div>'
+      ? '<div class="pt-2"><span class="text-white/30 font-medium block mb-1">Descrição</span><p class="text-white/70 text-right">' + tx.description + '</p></div>'
       : '';
 
-    card.innerHTML =
-      '<div class="flex items-center justify-between mb-3">' +
-        '<h3 class="text-xs font-semibold text-gold-400 uppercase tracking-wider">Confirmar transação</h3>' +
-        '<span class="text-[10px] text-white/30 px-2 py-0.5 rounded-full bg-gold-500/10 border border-gold-500/20">Prévia</span>' +
-      '</div>' +
-      '<div id="preview-view" class="space-y-1.5">' +
-        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Nome</span><span id="preview-name" class="text-xs text-white/80 font-medium">' + (tx.name || '—') + '</span></div>' +
-        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Valor</span><span id="preview-amount" class="text-xs font-semibold ' + amountClass + '">' + prefix + ' R$ ' + amount.toFixed(2).replace('.', ',') + '</span></div>' +
-        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Tipo</span><span id="preview-type" class="text-xs text-white/70">' + (typeLabels[tx.type] || tx.type || '—') + '</span></div>' +
-        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Categoria</span><span id="preview-category" class="text-xs text-white/70">' + categoryName + '</span></div>' +
-        '<div class="flex justify-between items-center"><span class="text-[11px] text-white/30 uppercase tracking-wider">Data</span><span id="preview-date" class="text-xs text-white/70">' + (tx.date || '—') + '</span></div>' +
+    var typeClass = tx.type === 'entrada' ? 'text-emerald-400/90 font-medium bg-emerald-400/10 px-2 py-0.5 rounded' : 'text-red-400/90 font-medium bg-red-400/10 px-2 py-0.5 rounded';
+
+    wrapper.innerHTML =
+      '<div id="preview-view" class="space-y-4 text-[14px]">' +
+        '<div class="flex justify-between items-center border-b border-white/[0.02] pb-2"><span class="text-white/30 font-medium">Lançamento</span><span id="preview-name" class="text-white/90 font-serif">' + (tx.name || '—') + '</span></div>' +
+        '<div class="flex justify-between items-center border-b border-white/[0.02] pb-2"><span class="text-white/30 font-medium">Valor</span><span id="preview-amount" class="text-white/90 font-mono tracking-wide">' + prefix + ' R$ ' + amount.toFixed(2).replace('.', ',') + '</span></div>' +
+        '<div class="flex justify-between items-center border-b border-white/[0.02] pb-2"><span class="text-white/30 font-medium">Fluxo</span><span id="preview-type" class="' + typeClass + '">' + (typeLabels[tx.type] || tx.type || '—') + '</span></div>' +
+        '<div class="flex justify-between items-center border-b border-white/[0.02] pb-2"><span class="text-white/30 font-medium">Categoria</span><span id="preview-category" class="text-white/90">' + categoryName + '</span></div>' +
+        '<div class="flex justify-between items-center border-b border-white/[0.02] pb-2"><span class="text-white/30 font-medium">Data</span><span id="preview-date" class="text-white/90">' + (tx.date || '—') + '</span></div>' +
         cardRowHTML + descRowHTML +
       '</div>' +
-      '<div id="edit-form" class="hidden space-y-2.5 mt-3">' +
-        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Nome</label><input type="text" id="edit-name" value="' + (tx.name || '') + '" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
-        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Valor (R$)</label><input type="number" id="edit-amount" step="0.01" min="0.01" value="' + (amount || '') + '" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
-        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Tipo</label><select id="edit-type" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"><option value="saida"' + (tx.type !== 'entrada' ? ' selected' : '') + '>Saída</option><option value="entrada"' + (tx.type === 'entrada' ? ' selected' : '') + '>Entrada</option></select></div>' +
-        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Data</label><input type="date" id="edit-date" value="' + (tx.date || '') + '" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
-        '<div><label class="block text-[10px] uppercase tracking-widest text-white/30 mb-1">Descrição</label><textarea id="edit-description" rows="2" class="w-full px-3 py-2 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white text-xs focus:outline-none focus:border-gold-500/40 transition-all resize-none">' + (tx.description || '') + '</textarea></div>' +
-        '<button type="button" onclick="saveEdits()" class="w-full py-2 rounded-xl bg-dark-700/60 border border-gold-500/20 text-gold-400 text-xs font-semibold hover:bg-gold-500/10 transition-all">Salvar edição</button>' +
+      '<div id="edit-form" class="hidden space-y-4 mt-4 text-[14px]">' +
+        '<div><label class="block text-white/30 font-medium mb-1">Lançamento</label><input type="text" id="edit-name" value="' + (tx.name || '') + '" class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
+        '<div><label class="block text-white/30 font-medium mb-1">Valor (R$)</label><input type="number" id="edit-amount" step="0.01" min="0.01" value="' + (amount || '') + '" class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
+        '<div><label class="block text-white/30 font-medium mb-1">Fluxo</label><select id="edit-type" class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white focus:outline-none focus:border-gold-500/40 transition-all"><option value="saida"' + (tx.type !== 'entrada' ? ' selected' : '') + '>Saída</option><option value="entrada"' + (tx.type === 'entrada' ? ' selected' : '') + '>Entrada</option></select></div>' +
+        '<div><label class="block text-white/30 font-medium mb-1">Data</label><input type="date" id="edit-date" value="' + (tx.date || '') + '" class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white focus:outline-none focus:border-gold-500/40 transition-all"></div>' +
+        '<div><label class="block text-white/30 font-medium mb-1">Descrição</label><textarea id="edit-description" rows="2" class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/[0.06] text-white focus:outline-none focus:border-gold-500/40 transition-all resize-none">' + (tx.description || '') + '</textarea></div>' +
+        '<button type="button" onclick="saveEdits()" class="w-full py-3 rounded-xl bg-dark-700/60 border border-gold-500/20 text-gold-400 font-semibold hover:bg-gold-500/10 transition-all">Salvar edição</button>' +
       '</div>' +
-      '<div class="my-3 border-t border-white/[0.05]"></div>' +
-      '<button type="button" id="edit-toggle-btn" onclick="toggleEditMode()" class="w-full mb-2 py-2 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-white/15 hover:text-white/70 transition-all">Editar campos</button>' +
-      '<div class="flex gap-2">' +
-        '<button type="button" id="confirm-btn" onclick="confirmTransaction()" class="flex-1 py-2.5 rounded-xl bg-gold-500 text-dark-950 text-xs font-semibold hover:bg-gold-400 active:bg-gold-600 transition-all">Confirmar</button>' +
-        '<button type="button" id="cancel-btn" onclick="cancelTransaction()" class="px-4 py-2.5 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-red-500/20 hover:text-red-400/70 transition-all">Cancelar</button>' +
+      '<div class="flex gap-3 mt-8">' +
+        '<button type="button" id="confirm-btn" onclick="confirmTransaction()" class="flex-1 py-3 rounded-xl bg-gold-500 text-dark-950 text-[13px] font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/20 magnetic">Confirmar Lançamento</button>' +
+        '<button type="button" id="edit-toggle-btn" onclick="toggleEditMode()" class="flex-1 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white/80 transition-colors">Ajustar</button>' +
+        '<button type="button" id="cancel-btn" onclick="cancelTransaction()" class="hidden">Cancelar</button>' +
       '</div>';
-
-    wrapper.appendChild(card);
     container.appendChild(wrapper);
     container.scrollTop = container.scrollHeight;
   }
@@ -329,20 +313,15 @@
     var container = document.getElementById('chat-messages');
     var wrapper = document.createElement('div');
     wrapper.id = 'chat-suggest-category';
-    wrapper.className = 'flex items-start gap-2.5';
-
-    var avatar = document.createElement('div');
-    avatar.className = 'w-7 h-7 rounded-full bg-gold-500/20 flex items-center justify-center flex-shrink-0 mt-0.5';
-    avatar.innerHTML = '<svg class="w-3.5 h-3.5 text-gold-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>';
-    wrapper.appendChild(avatar);
+    wrapper.className = 'flex justify-start mb-2';
 
     var card = document.createElement('div');
-    card.className = 'max-w-sm p-4 rounded-2xl rounded-tl-sm bg-dark-800/60 border border-white/[0.06]';
+    card.className = 'max-w-sm p-5 rounded-2xl rounded-tl-sm bg-black/40 border border-white/5 backdrop-blur-sm';
     card.innerHTML =
-      '<p class="text-sm text-white/70 mb-3">Deseja criar a categoria <strong class="text-gold-400">"' + categoryName + '"</strong>?</p>' +
-      '<div class="flex gap-2">' +
-        '<button type="button" onclick="createSuggestedCategory(\'' + categoryName.replace(/'/g, "\\'") + '\', \'' + interactionId + '\')" class="flex-1 py-2 rounded-xl bg-gold-500 text-dark-950 text-xs font-semibold hover:bg-gold-400 transition-all">Criar categoria</button>' +
-        '<button type="button" onclick="skipCategory()" class="px-4 py-2 rounded-xl border border-white/[0.06] text-white/40 text-xs hover:border-white/15 hover:text-white/70 transition-all">Pular</button>' +
+      '<p class="text-[14px] text-white/70 mb-4">Deseja criar a categoria <strong class="text-gold-400 font-serif">"' + categoryName + '"</strong>?</p>' +
+      '<div class="flex gap-3">' +
+        '<button type="button" onclick="createSuggestedCategory(\'' + categoryName.replace(/'/g, "\\'") + '\', \'' + interactionId + '\')" class="flex-1 py-2.5 rounded-xl bg-gold-500 text-dark-950 text-[13px] font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/20 magnetic">Criar categoria</button>' +
+        '<button type="button" onclick="skipCategory()" class="flex-1 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white/80 transition-colors">Pular</button>' +
       '</div>';
     wrapper.appendChild(card);
     container.appendChild(wrapper);
@@ -353,7 +332,7 @@
     var suggestCard = document.getElementById('chat-suggest-category');
     if (suggestCard) suggestCard.remove();
 
-    setLoading(true);
+    setLoading(true, 'Criando categoria...');
     fetch('{% url "assistant:create_category" %}', {
       method: 'POST',
       headers: {
@@ -422,7 +401,7 @@
     addMessage(text, 'user');
     input.value = '';
 
-    setLoading(true);
+    setLoading(true, 'Auri está processando...');
 
     fetch('{% url "assistant:text" %}', {
       method: 'POST',
@@ -451,8 +430,8 @@
 
   // ─── Envio de áudio ────────────────────────────────────────────────
   window.sendAudio = function (blob) {
-    addMessage('[Áudio enviado]', 'user');
-    setLoading(true);
+    addMessage('[Áudio gravado com sucesso]', 'user');
+    setLoading(true, 'Transcrevendo áudio...');
 
     var formData = new FormData();
     formData.append('audio', blob, 'recording.webm');
@@ -560,6 +539,7 @@
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(function (stream) {
         audioChunks = [];
+        isRecordingCancelled = false;
         mediaRecorder = new MediaRecorder(stream);
         mediaRecorder._stream = stream;
 
@@ -570,8 +550,10 @@
         });
 
         mediaRecorder.addEventListener('stop', function () {
-          var blob = new Blob(audioChunks, { type: 'audio/webm' });
-          sendAudio(blob);
+          if (!isRecordingCancelled) {
+            var blob = new Blob(audioChunks, { type: 'audio/webm' });
+            sendAudio(blob);
+          }
           stream.getTracks().forEach(function (track) { track.stop(); });
         });
 
@@ -592,13 +574,8 @@
   };
 
   window.cancelRecording = function () {
+    isRecordingCancelled = true;
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      // Substituir listener de stop para descartar áudio
-      mediaRecorder.onstop = function () {
-        if (mediaRecorder._stream) {
-          mediaRecorder._stream.getTracks().forEach(function (track) { track.stop(); });
-        }
-      };
       mediaRecorder.stop();
     }
     audioChunks = [];
@@ -606,15 +583,18 @@
   };
 
   // ─── Estados visuais ────────────────────────────────────────────────
-  function setLoading(active) {
+  function setLoading(active, text) {
     var btn = document.getElementById('send-btn');
     var input = document.getElementById('text-input');
     var typing = document.getElementById('typing-indicator');
     var container = document.getElementById('chat-messages');
+    var typingText = document.getElementById('typing-text');
     if (btn) btn.disabled = active;
     if (input) input.disabled = active;
     if (typing) {
       if (active) {
+        if (typingText) typingText.textContent = text || 'Auri está processando...';
+        if (container) container.appendChild(typing);
         typing.classList.remove('hidden');
         typing.classList.add('flex');
         if (container) container.scrollTop = container.scrollHeight;
