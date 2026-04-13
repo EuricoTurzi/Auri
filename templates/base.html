@@ -75,7 +75,8 @@
     {% include "includes/navbar.html" %}
   {% endblock %}
 
-  <main>
+  <!-- Terminals/Browsers sometimes struggle with just body overflow-x-hidden -->
+  <main class="w-full overflow-x-hidden">
     {% block content %}{% endblock %}
   </main>
 
