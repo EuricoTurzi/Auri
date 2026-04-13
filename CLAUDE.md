@@ -32,6 +32,13 @@ Ao concluir uma feature, atualize a nota correspondente no Obsidian com:
 - Decisões tomadas que divergiram da spec
 - Testes adicionados
 
+Implementação de features:
+O Obsidian possui uma pasta para registros de features, `Auri/features`, nele contém notas com funcionalidades que precisam ser inseridas no sistema. Eu utilizo a divisão de feature por módulo, `Auri/features/<module>/feature-name.md`.
+- Leia as notas e identifique as funcionalidades.
+- Crie um plano de implementação seguindo o padrão de SDD com TDD.
+- Não execute o plano até que tenha o meu OK e revisão.
+- Em alterações diretas em templates, não faça a execução, registre o que deve ser alterado na pasta `Auri/features/frontend/<module>/feature-name.md`.
+
 Tratamento de erros:
 O obisidian possui uma pasta para erros reportados, `Auri/errors` nele contem notas de erros utilizando a seguinte nomenclatura `erro-numero_do_erro-data_do_registro`.
 - Leia as notas e identifique os erros.
