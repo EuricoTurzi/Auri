@@ -36,76 +36,95 @@
 
     <!-- Lista de cartões -->
     {% if cards_com_limite %}
-    <div class="space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       {% for item in cards_com_limite %}
       {% with card=item.card available=item.available_limit %}
-      <div class="px-5 py-4 rounded-2xl bg-dark-800/60 border border-white/[0.05] hover:border-white/10 transition-all">
-        <div class="flex items-start justify-between gap-4">
+      <div class="relative w-full aspect-[1.6/1] sm:h-auto sm:aspect-[1.58/1] p-6 sm:p-7 rounded-[1.25rem] {% if card.card_type == 'credito' %}finance-card-gold{% else %}finance-card{% endif %} group transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(201,168,76,0.15)] flex flex-col justify-between overflow-hidden">
+        
+        <!-- Topo: Bandeira, Ícone do chip -->
+        <div class="flex justify-between items-start z-10 relative">
+          <div class="flex items-center gap-2 text-white/90">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+            </svg>
+            <span class="text-[10px] font-medium uppercase tracking-widest-plus">Auri {{ card.get_card_type_display }}</span>
+          </div>
+          
+          <div class="text-right flex items-center gap-3">
+            <p class="text-[10px] font-bold text-white/60 tracking-[0.2em] uppercase">{{ card.brand }}</p>
+            <svg class="w-8 h-8 opacity-60" viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="12" fill="white" fill-opacity="0.5"/>
+              <circle cx="24" cy="12" r="12" fill="white" fill-opacity="0.5"/>
+            </svg>
+          </div>
+        </div>
 
-          <!-- Informações principais -->
-          <div class="flex items-center gap-4 min-w-0">
-            <!-- Ícone de cartão -->
-            <div class="w-10 h-10 rounded-xl bg-dark-700/60 border border-white/[0.06] flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 text-gold-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke-width="1.5"/>
-                <line x1="1" y1="10" x2="23" y2="10" stroke-width="1.5"/>
-              </svg>
-            </div>
-
-            <div class="min-w-0">
-              <!-- Nome e tipo -->
-              <div class="flex items-center gap-2 flex-wrap">
-                <p class="text-sm font-medium text-white/80">{{ card.name }}</p>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
-                  {% if card.card_type == 'credito' %}bg-gold-500/15 text-gold-400
-                  {% else %}bg-emerald-500/15 text-emerald-400{% endif %}">
-                  {{ card.get_card_type_display }}
-                </span>
-              </div>
-
-              <!-- Bandeira e dígitos -->
-              <p class="text-xs text-white/30 mt-0.5">{{ card.brand }} &middot; ****{{ card.last_four_digits }}</p>
-
-              <!-- Limite (apenas crédito) -->
-              {% if card.card_type == 'credito' and card.credit_limit %}
-              <div class="mt-2">
-                <p class="text-xs text-white/40">
-                  Disponível:
-                  <span class="text-white/70 font-medium">R$ {{ available|floatformat:2 }}</span>
-                  <span class="text-white/20"> / </span>
-                  <span class="text-white/40">R$ {{ card.credit_limit|floatformat:2 }}</span>
-                </p>
-                <!-- Mini barra de limite -->
-                {% if card.credit_limit %}
-                {% widthratio available card.credit_limit 100 as pct %}
-                <div class="mt-1.5 w-40 h-1 rounded-full bg-white/[0.06] overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-500
-                    {% if pct|add:0 > 50 %}bg-emerald-500/60
-                    {% elif pct|add:0 > 20 %}bg-gold-500/60
-                    {% else %}bg-red-500/60{% endif %}"
-                    style="width: {{ pct }}%"></div>
-                </div>
-                {% endif %}
-              </div>
-              {% endif %}
+        <!-- Meio: Nome, Número -->
+        <div class="z-10 relative mb-2 mt-auto">
+          <div class="flex gap-3 sm:gap-4 mb-4 sm:mb-6 font-mono text-[14px] sm:text-[16px] text-white/90 tracking-[0.25em] drop-shadow-sm">
+            <span>••••</span><span>••••</span><span>••••</span><span>{{ card.last_four_digits }}</span>
+          </div>
+          <div class="flex justify-between items-end">
+            <div>
+              <p class="text-[9px] text-white/50 uppercase tracking-widest-plus mb-1">Titular</p>
+              <p class="font-serif text-base sm:text-lg text-white/90 tracking-widest uppercase">{{ card.name }}</p>
             </div>
           </div>
+        </div>
 
-          <!-- Ações -->
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <a href="{% url 'cards:detail' card.pk %}"
-              class="px-3 py-1.5 rounded-lg text-xs text-white/50 border border-white/[0.06] hover:border-white/15 hover:text-white/80 transition-all">
-              Ver
+        <!-- Overlay e Hover Actions -->
+        <div class="absolute inset-0 bg-dark-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex flex-col p-6 sm:p-7 justify-center">
+          
+          <!-- Limites se Crédito -->
+          {% if card.card_type == 'credito' %}
+          <div class="w-full max-w-[240px] mx-auto text-center mb-6">
+            <div class="flex justify-between items-end mb-2 px-1">
+              <div class="text-left">
+                <p class="text-[9px] uppercase tracking-widest text-white/50 mb-0.5">Disponível</p>
+                <p class="text-sm font-semibold text-emerald-400 font-mono">R$ {{ available|floatformat:2 }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-[9px] uppercase tracking-widest text-white/50 mb-0.5">Limite</p>
+                <p class="text-xs font-medium text-white/70 font-mono">R$ {{ card.credit_limit|floatformat:2 }}</p>
+              </div>
+            </div>
+            {% if card.credit_limit %}
+            {% widthratio available card.credit_limit 100 as pct %}
+            <div class="w-full h-[4px] rounded-full bg-white/[0.08] overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-1000 ease-out 
+                {% if pct|add:0 > 50 %}bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]
+                {% elif pct|add:0 > 20 %}bg-gold-500 shadow-[0_0_10px_rgba(201,168,76,0.5)]
+                {% else %}bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]{% endif %}"
+                style="width: {{ pct }}%"></div>
+            </div>
+            {% endif %}
+            <div class="flex justify-between mt-4">
+              <div class="text-left">
+                <p class="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">Fechamento</p>
+                <p class="text-xs text-white/80">Dia {{ card.billing_close_day|default:"--" }}</p>
+              </div>
+              <div class="text-right">
+                 <p class="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">Vencimento</p>
+                 <p class="text-xs text-white/80">Dia {{ card.billing_due_day|default:"--" }}</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          
+          <div class="flex justify-center gap-3">
+             <a href="{% url 'cards:detail' card.pk %}"
+              class="px-4 py-2 rounded-xl text-xs font-semibold text-dark-950 bg-gold-500 hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/20">
+              Detalhes
             </a>
             <a href="{% url 'cards:edit' card.pk %}"
-              class="px-3 py-1.5 rounded-lg text-xs text-white/50 border border-white/[0.06] hover:border-white/15 hover:text-white/80 transition-all">
+              class="px-4 py-2 rounded-xl text-xs font-medium text-white/90 bg-white/10 hover:bg-white/20 border border-white/10 transition-colors">
               Editar
             </a>
-            <form method="post" action="{% url 'cards:delete' card.pk %}" onsubmit="return confirm('Remover o cartão \'{{ card.name }}\'?')">
+            <form method="post" action="{% url 'cards:delete' card.pk %}" onsubmit="return confirm('Excluir o cartão {{ card.name }}?')" class="inline">
               {% csrf_token %}
               <button type="submit"
-                class="px-3 py-1.5 rounded-lg text-xs text-red-400/70 border border-red-500/10 hover:border-red-500/20 hover:text-red-400 transition-all">
-                Remover
+                class="px-4 py-2 rounded-xl text-xs font-medium text-red-100 bg-red-500/20 border border-red-500/30 hover:bg-red-500/40 hover:border-red-500/50 transition-colors">
+                Excluir
               </button>
             </form>
           </div>
