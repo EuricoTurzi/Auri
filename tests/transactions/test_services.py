@@ -24,6 +24,7 @@ from apps.transactions.selectors import (
     get_installments,
     get_recurring_transactions,
     get_transaction_by_id,
+    get_transactions_summary,
     get_user_transactions,
 )
 
@@ -710,3 +711,97 @@ class TestSelectors:
         qs = get_user_transactions(user, {'card_id': str(card.id)})
         assert t_com_cartao in qs
         assert all(t.card_id == card.id for t in qs)
+
+
+class TestGetTransactionsSummary:
+    """Resumo agregado de entradas, saídas e saldo líquido."""
+
+    def test_soma_entradas_saidas_e_calcula_saldo(self, user, category):
+        """Deve agregar corretamente valores de entrada/saída no período."""
+        Transaction.objects.create(
+            user=user, name='Salário', amount=Decimal('500.00'), type='entrada',
+            category=category, date=date(2024, 2, 5),
+        )
+        Transaction.objects.create(
+            user=user, name='Freelance', amount=Decimal('300.00'), type='entrada',
+            category=category, date=date(2024, 2, 10),
+        )
+        Transaction.objects.create(
+            user=user, name='Mercado', amount=Decimal('200.00'), type='saida',
+            category=category, date=date(2024, 2, 15),
+        )
+        resumo = get_transactions_summary(user, {
+            'date_start': '2024-02-01',
+            'date_end': '2024-02-28',
+        })
+        assert resumo['total_entradas'] == Decimal('800.00')
+        assert resumo['total_saidas'] == Decimal('200.00')
+        assert resumo['saldo_liquido'] == Decimal('600.00')
+
+    def test_periodo_sem_transacoes_retorna_zero(self, user):
+        """Sem transações no período, os 3 valores devem ser Decimal('0')."""
+        resumo = get_transactions_summary(user, {
+            'date_start': '2030-01-01',
+            'date_end': '2030-01-31',
+        })
+        assert resumo['total_entradas'] == Decimal('0')
+        assert resumo['total_saidas'] == Decimal('0')
+        assert resumo['saldo_liquido'] == Decimal('0')
+
+    def test_isolamento_por_usuario(self, user, other_user, category, other_category):
+        """Transações de outro usuário não podem entrar no resumo."""
+        Transaction.objects.create(
+            user=user, name='Minha Entrada', amount=Decimal('100.00'), type='entrada',
+            category=category, date=date(2024, 2, 5),
+        )
+        Transaction.objects.create(
+            user=other_user, name='Entrada Alheia', amount=Decimal('999.00'), type='entrada',
+            category=other_category, date=date(2024, 2, 5),
+        )
+        resumo = get_transactions_summary(user, {
+            'date_start': '2024-02-01',
+            'date_end': '2024-02-28',
+        })
+        assert resumo['total_entradas'] == Decimal('100.00')
+        assert resumo['saldo_liquido'] == Decimal('100.00')
+
+    def test_exclui_pai_de_parcelamento(self, user, category):
+        """O pai de parcelamento (container) não deve duplicar o total."""
+        pai = Transaction.objects.create(
+            user=user, name='Notebook', amount=Decimal('3000.00'), type='saida',
+            category=category, date=date(2024, 2, 1),
+            is_installment=True, recurring_parent=None,
+        )
+        # Filhos (parcelas) — apenas estes devem ser contabilizados.
+        Transaction.objects.create(
+            user=user, name='Notebook (1/3)', amount=Decimal('1000.00'), type='saida',
+            category=category, date=date(2024, 2, 1),
+            is_installment=True, recurring_parent=pai,
+        )
+        Transaction.objects.create(
+            user=user, name='Notebook (2/3)', amount=Decimal('1000.00'), type='saida',
+            category=category, date=date(2024, 2, 15),
+            is_installment=True, recurring_parent=pai,
+        )
+        resumo = get_transactions_summary(user, {
+            'date_start': '2024-02-01',
+            'date_end': '2024-02-28',
+        })
+        # 1000 + 1000 (filhos), não 3000 (pai) + 1000 + 1000
+        assert resumo['total_saidas'] == Decimal('2000.00')
+
+    def test_ignora_transacoes_inativas(self, user, category):
+        """Soft-delete (is_active=False) não deve entrar no agregado."""
+        Transaction.objects.create(
+            user=user, name='Ativa', amount=Decimal('50.00'), type='entrada',
+            category=category, date=date(2024, 2, 5),
+        )
+        Transaction.objects.create(
+            user=user, name='Inativa', amount=Decimal('999.00'), type='entrada',
+            category=category, date=date(2024, 2, 5), is_active=False,
+        )
+        resumo = get_transactions_summary(user, {
+            'date_start': '2024-02-01',
+            'date_end': '2024-02-28',
+        })
+        assert resumo['total_entradas'] == Decimal('50.00')

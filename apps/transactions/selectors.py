@@ -2,6 +2,9 @@
 Selectors para o app transactions — consultas de leitura sobre transações e parcelas.
 Todas as queries garantem isolamento por usuário (tenant isolation).
 """
+from decimal import Decimal
+
+from django.db.models import Sum
 
 from apps.transactions.models import Installment, Transaction
 
@@ -74,6 +77,37 @@ def get_installments(transaction_id, user):
     get_transaction_by_id(transaction_id, user)
 
     return Installment.objects.filter(parent_transaction_id=transaction_id, is_active=True)
+
+
+def get_transactions_summary(user, filters=None):
+    """
+    Retorna um resumo agregado das transações do usuário dentro dos filtros.
+
+    Reaproveita `get_user_transactions` para garantir exatamente o mesmo
+    escopo (tenant isolation, soft-delete, exclusão do pai de parcelamento,
+    filtros de data/categoria/cartão/status/type).
+
+    Retorna um dict com:
+        - total_entradas: Decimal
+        - total_saidas: Decimal
+        - saldo_liquido: Decimal (entradas - saídas)
+    """
+    qs = get_user_transactions(user, filters)
+
+    total_entradas = (
+        qs.filter(type="entrada").aggregate(total=Sum("amount"))["total"]
+        or Decimal("0")
+    )
+    total_saidas = (
+        qs.filter(type="saida").aggregate(total=Sum("amount"))["total"]
+        or Decimal("0")
+    )
+
+    return {
+        "total_entradas": total_entradas,
+        "total_saidas": total_saidas,
+        "saldo_liquido": total_entradas - total_saidas,
+    }
 
 
 def get_recurring_transactions(user):
