@@ -14,6 +14,7 @@ from django.views import View
 from apps.transactions.selectors import (
     get_installments,
     get_transaction_by_id,
+    get_transactions_summary,
     get_user_transactions,
 )
 from apps.transactions.services import (
@@ -63,6 +64,7 @@ class TransactionListView(LoginRequiredMixin, View):
             "filtros": filtros,
             "categorias": categorias,
             "cartoes": cartoes,
+            "resumo": get_transactions_summary(request.user, filtros),
         }
         return render(request, self.template_name, contexto)
 

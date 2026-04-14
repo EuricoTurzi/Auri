@@ -105,6 +105,25 @@ class TestTransactionListView:
         assert response.status_code == 200
         assert transaction.name.encode() in response.content
 
+    def test_contexto_inclui_resumo(self, client_auth, user, category):
+        """GET deve expor resumo com entradas, saídas e saldo no contexto."""
+        Transaction.objects.create(
+            user=user, name='Salário', amount=Decimal('1000.00'), type='entrada',
+            category=category, date=date(2024, 2, 5),
+        )
+        Transaction.objects.create(
+            user=user, name='Mercado', amount=Decimal('250.00'), type='saida',
+            category=category, date=date(2024, 2, 10),
+        )
+        response = client_auth.get(
+            '/transactions/?date_start=2024-02-01&date_end=2024-02-28'
+        )
+        assert response.status_code == 200
+        resumo = response.context['resumo']
+        assert resumo['total_entradas'] == Decimal('1000.00')
+        assert resumo['total_saidas'] == Decimal('250.00')
+        assert resumo['saldo_liquido'] == Decimal('750.00')
+
 
 # ---------------------------------------------------------------------------
 # TestTransactionCreateView
