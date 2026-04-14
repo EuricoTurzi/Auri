@@ -105,6 +105,118 @@ class TestTransactionListView:
         assert response.status_code == 200
         assert transaction.name.encode() in response.content
 
+    def _card_com_ciclo(self, user, close_day=9):
+        return Card.objects.create(
+            user=user, name='Nubank', brand='Mastercard',
+            last_four_digits='1234', card_type='credito',
+            credit_limit=Decimal('5000.00'), billing_close_day=close_day,
+        )
+
+    def test_cycle_filter_define_periodo_do_cartao(self, client_auth, user, category):
+        """?cycle_card=UUID filtra transações pelo ciclo do cartão (sobrescreve datas)."""
+        cartao = self._card_com_ciclo(user)
+        # Dentro do ciclo atual do cartão (depende de hoje).
+        from apps.cards.selectors import get_cycle_period
+        start, end = get_cycle_period(cartao, offset=0)
+        dentro = Transaction.objects.create(
+            user=user, name='Dentro', amount=Decimal('100.00'), type='saida',
+            category=category, date=start,
+        )
+        # Fora do ciclo (1 dia depois do fim).
+        from datetime import timedelta
+        Transaction.objects.create(
+            user=user, name='Fora', amount=Decimal('50.00'), type='saida',
+            category=category, date=end + timedelta(days=1),
+        )
+        response = client_auth.get(f'/transactions/?cycle_card={cartao.id}')
+        assert response.status_code == 200
+        assert response.context['cycle'] is not None
+        assert response.context['cycle']['card_id'] == str(cartao.id)
+        # Resumo deve refletir apenas a transação dentro do ciclo.
+        assert response.context['resumo']['total_saidas'] == Decimal('100.00')
+        assert dentro in response.context['transacoes']
+
+    def test_cycle_mostra_transacoes_sem_cartao_no_periodo(
+        self, client_auth, user, category
+    ):
+        """Transação sem card vinculado aparece dentro do ciclo do cartão selecionado."""
+        cartao = self._card_com_ciclo(user)
+        from apps.cards.selectors import get_cycle_period
+        start, _ = get_cycle_period(cartao, offset=0)
+        transferencia = Transaction.objects.create(
+            user=user, name='Transferência', amount=Decimal('300.00'), type='entrada',
+            category=category, date=start, card=None,
+        )
+        response = client_auth.get(f'/transactions/?cycle_card={cartao.id}')
+        assert response.status_code == 200
+        assert transferencia in response.context['transacoes']
+
+    def test_cycle_filter_respeita_card_id_secundario(
+        self, client_auth, user, category
+    ):
+        """Quando ciclo ativo, card_id secundário filtra adicionalmente."""
+        ciclo_card = self._card_com_ciclo(user)
+        outro_card = Card.objects.create(
+            user=user, name='Outro', brand='Visa', last_four_digits='2222',
+            card_type='credito', credit_limit=Decimal('1000.00'),
+        )
+        from apps.cards.selectors import get_cycle_period
+        start, _ = get_cycle_period(ciclo_card, offset=0)
+
+        t_ciclo = Transaction.objects.create(
+            user=user, name='Nubank compra', amount=Decimal('40.00'), type='saida',
+            category=category, date=start, card=ciclo_card,
+        )
+        t_outro = Transaction.objects.create(
+            user=user, name='Outro compra', amount=Decimal('25.00'), type='saida',
+            category=category, date=start, card=outro_card,
+        )
+        # Pede ciclo do Nubank mas filtra por card_id=outro
+        response = client_auth.get(
+            f'/transactions/?cycle_card={ciclo_card.id}&card_id={outro_card.id}'
+        )
+        assert response.status_code == 200
+        assert t_outro in response.context['transacoes']
+        assert t_ciclo not in response.context['transacoes']
+
+    def test_cycle_offset_positivo_avanca_ciclo(self, client_auth, user):
+        cartao = self._card_com_ciclo(user)
+        response = client_auth.get(
+            f'/transactions/?cycle_card={cartao.id}&cycle_offset=1'
+        )
+        assert response.status_code == 200
+        ctx = response.context['cycle']
+        assert ctx['offset'] == 1
+
+    def test_cycle_offset_negativo_volta_ciclo(self, client_auth, user):
+        cartao = self._card_com_ciclo(user)
+        response = client_auth.get(
+            f'/transactions/?cycle_card={cartao.id}&cycle_offset=-1'
+        )
+        assert response.status_code == 200
+        assert response.context['cycle']['offset'] == -1
+
+    def test_cycle_card_de_outro_usuario_ignora_filtro(
+        self, client_auth, user, other_user, category
+    ):
+        """cycle_card de outro usuário → ignora ciclo, cai no mês corrente."""
+        Category.objects.create(user=other_user, name='Outra')
+        cartao_alheio = Card.objects.create(
+            user=other_user, name='Alheio', brand='Visa',
+            last_four_digits='9999', card_type='credito', billing_close_day=5,
+        )
+        response = client_auth.get(f'/transactions/?cycle_card={cartao_alheio.id}')
+        assert response.status_code == 200
+        assert response.context['cycle'] is None
+
+    def test_cycle_card_invalido_nao_quebra(self, client_auth):
+        """UUID mal-formado/inexistente não quebra a view."""
+        response = client_auth.get(
+            '/transactions/?cycle_card=00000000-0000-0000-0000-000000000000'
+        )
+        assert response.status_code == 200
+        assert response.context['cycle'] is None
+
     def test_contexto_inclui_resumo(self, client_auth, user, category):
         """GET deve expor resumo com entradas, saídas e saldo no contexto."""
         Transaction.objects.create(

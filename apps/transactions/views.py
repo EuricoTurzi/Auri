@@ -36,18 +36,43 @@ class TransactionListView(LoginRequiredMixin, View):
         from datetime import date
         import calendar
 
+        from apps.cards.selectors import build_cycle_context, get_card_by_id
+
+        # Ciclo de cartão (opcional) — sobrescreve date_start/date_end quando ativo.
+        cycle_card_id = request.GET.get("cycle_card", "").strip()
+        try:
+            cycle_offset = int(request.GET.get("cycle_offset", "0"))
+        except (TypeError, ValueError):
+            cycle_offset = 0
+
+        cycle_context = None
+        if cycle_card_id:
+            try:
+                cartao_ciclo = get_card_by_id(cycle_card_id, request.user)
+                cycle_context = build_cycle_context(cartao_ciclo, offset=cycle_offset)
+            except (PermissionError, ValueError, ValidationError):
+                cycle_context = None
+
         # Define data inicial/final padrão (Mês atual) se não houver filtro na URL
         hoje = date.today()
         primeiro_dia = hoje.replace(day=1)
         ultimo_dia = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
+
+        if cycle_context:
+            # Ciclo ativo: sobrescreve datas (ignora query params de data).
+            date_start = cycle_context["start"].strftime("%Y-%m-%d")
+            date_end = cycle_context["end"].strftime("%Y-%m-%d")
+        else:
+            date_start = request.GET.get("date_start", primeiro_dia.strftime("%Y-%m-%d"))
+            date_end = request.GET.get("date_end", ultimo_dia.strftime("%Y-%m-%d"))
 
         # Extrai filtros dos parâmetros de query
         filtros = {
             "type": request.GET.get("type", ""),
             "category_id": request.GET.get("category_id", ""),
             "card_id": request.GET.get("card_id", ""),
-            "date_start": request.GET.get("date_start", primeiro_dia.strftime("%Y-%m-%d")),
-            "date_end": request.GET.get("date_end", ultimo_dia.strftime("%Y-%m-%d")),
+            "date_start": date_start,
+            "date_end": date_end,
             "status": request.GET.get("status", ""),
         }
 
@@ -65,6 +90,7 @@ class TransactionListView(LoginRequiredMixin, View):
             "categorias": categorias,
             "cartoes": cartoes,
             "resumo": get_transactions_summary(request.user, filtros),
+            "cycle": cycle_context,
         }
         return render(request, self.template_name, contexto)
 
