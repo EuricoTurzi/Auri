@@ -5,6 +5,7 @@ import calendar
 import datetime
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from django.apps import apps as django_apps
 from django.db.models import Sum
 
@@ -123,6 +124,109 @@ def get_available_limit(card):
     except LookupError:
         # transactions ainda não implementado
         return card.credit_limit
+
+
+def _month_calendar_period(reference_date, offset):
+    """Retorna (primeiro_dia, ultimo_dia) do mês shiftado por `offset`."""
+    alvo = reference_date + relativedelta(months=offset)
+    ultimo = calendar.monthrange(alvo.year, alvo.month)[1]
+    return (
+        datetime.date(alvo.year, alvo.month, 1),
+        datetime.date(alvo.year, alvo.month, ultimo),
+    )
+
+
+def _safe_day(year, month, desired_day):
+    """Aplica min(desired_day, último_dia_do_mês) para evitar dia inválido."""
+    ultimo = calendar.monthrange(year, month)[1]
+    return min(desired_day, ultimo)
+
+
+def _close_day_cycle_period(reference_date, close_day, offset):
+    """
+    Calcula (inicio, fim) do ciclo do cartão seguindo a convenção:
+        inicio = data do fechamento mais recente (inclusive)
+        fim    = data do próximo fechamento − 1 dia
+
+    Quando reference_date.day >= close_day_efetivo do mês corrente, o ciclo
+    começa neste mês; caso contrário, começou no mês anterior.
+    """
+    ano = reference_date.year
+    mes = reference_date.month
+    close_efetivo_mes = _safe_day(ano, mes, close_day)
+
+    if reference_date.day >= close_efetivo_mes:
+        start = datetime.date(ano, mes, close_efetivo_mes)
+    else:
+        mes_inicio = reference_date - relativedelta(months=1)
+        close_efetivo_prev = _safe_day(mes_inicio.year, mes_inicio.month, close_day)
+        start = datetime.date(mes_inicio.year, mes_inicio.month, close_efetivo_prev)
+
+    # Aplica offset deslocando o start em `offset` meses e recalculando
+    # o dia efetivo (para bordas de mês).
+    start_shifted = start + relativedelta(months=offset)
+    start_shifted = datetime.date(
+        start_shifted.year,
+        start_shifted.month,
+        _safe_day(start_shifted.year, start_shifted.month, close_day),
+    )
+
+    next_close = start_shifted + relativedelta(months=1)
+    next_close = datetime.date(
+        next_close.year,
+        next_close.month,
+        _safe_day(next_close.year, next_close.month, close_day),
+    )
+    end = next_close - datetime.timedelta(days=1)
+
+    return start_shifted, end
+
+
+def get_cycle_period(card, offset=0, reference_date=None):
+    """
+    Retorna uma tupla (data_inicio, data_fim) representando o ciclo do cartão.
+
+    Convenção: o ciclo começa no dia do fechamento (`billing_close_day`) e
+    termina um dia antes do próximo fechamento — ex: close_day=9 →
+    (09/04, 08/05).
+
+    Parâmetros:
+        card: instância de Card.
+        offset: 0 = ciclo atual, +N = futuros, -N = anteriores.
+        reference_date: data de referência (default: hoje). Útil em testes.
+
+    Cartões sem `billing_close_day` caem em fallback de mês calendário
+    (primeiro e último dia), shiftado pelo mesmo offset.
+    """
+    hoje = reference_date or datetime.date.today()
+
+    try:
+        close_day = int(card.billing_close_day) if card.billing_close_day else None
+    except (TypeError, ValueError):
+        close_day = None
+
+    if close_day is None or not (1 <= close_day <= 31):
+        return _month_calendar_period(hoje, offset)
+
+    return _close_day_cycle_period(hoje, close_day, offset)
+
+
+def build_cycle_context(card, offset=0, reference_date=None):
+    """
+    Embala `get_cycle_period` + metadados de navegação para uso em views
+    e templates. Retorna um dict pronto para injetar no contexto.
+    """
+    start, end = get_cycle_period(card, offset, reference_date)
+    return {
+        "card_id": str(card.id),
+        "card_name": card.name,
+        "offset": offset,
+        "start": start,
+        "end": end,
+        "prev_offset": offset - 1,
+        "next_offset": offset + 1,
+        "label": f"{start.strftime('%d/%m/%Y')} — {end.strftime('%d/%m/%Y')}",
+    }
 
 
 def get_month_period(month_str):

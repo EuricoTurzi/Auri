@@ -5,9 +5,11 @@ from apps.accounts.models import CustomUser
 from apps.cards.models import Card
 from apps.cards.services import create_card, deactivate_card, update_card
 from apps.cards.selectors import (
+    build_cycle_context,
     get_available_limit,
     get_card_by_id,
     get_card_transactions_summary,
+    get_cycle_period,
     get_month_period,
     get_user_cards,
 )
@@ -354,3 +356,140 @@ class TestGetCardTransactionsSummary:
         assert resumo['total_entradas'] == Decimal('0')
         assert resumo['total_saidas'] == Decimal('0')
         assert resumo['saldo_liquido'] == Decimal('0')
+
+
+class TestGetCyclePeriod:
+    """Ciclo de fechamento do cartão — semântica (close_day → next_close_day - 1)."""
+
+    def test_ciclo_atual_hoje_depois_do_close_day(self, user):
+        """Hoje=15/04, close_day=9 → ciclo atual = (09/04, 08/05)."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='C1', brand='Visa', last_four_digits='1111',
+            card_type='credito', billing_close_day=9,
+        )
+        inicio, fim = get_cycle_period(card, offset=0, reference_date=datetime.date(2024, 4, 15))
+        assert inicio == datetime.date(2024, 4, 9)
+        assert fim == datetime.date(2024, 5, 8)
+
+    def test_ciclo_atual_hoje_antes_do_close_day(self, user):
+        """Hoje=03/04, close_day=9 → ciclo atual = (09/03, 08/04)."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='C2', brand='Visa', last_four_digits='2222',
+            card_type='credito', billing_close_day=9,
+        )
+        inicio, fim = get_cycle_period(card, offset=0, reference_date=datetime.date(2024, 4, 3))
+        assert inicio == datetime.date(2024, 3, 9)
+        assert fim == datetime.date(2024, 4, 8)
+
+    def test_ciclo_hoje_igual_ao_close_day_cai_no_novo(self, user):
+        """Hoje=09/04, close_day=9 → ciclo novo começa hoje."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='C3', brand='Visa', last_four_digits='3333',
+            card_type='credito', billing_close_day=9,
+        )
+        inicio, fim = get_cycle_period(card, offset=0, reference_date=datetime.date(2024, 4, 9))
+        assert inicio == datetime.date(2024, 4, 9)
+        assert fim == datetime.date(2024, 5, 8)
+
+    def test_ciclo_offset_positivo(self, user):
+        """offset=+1 avança 1 ciclo."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='C4', brand='Visa', last_four_digits='4444',
+            card_type='credito', billing_close_day=9,
+        )
+        inicio, fim = get_cycle_period(card, offset=1, reference_date=datetime.date(2024, 4, 15))
+        assert inicio == datetime.date(2024, 5, 9)
+        assert fim == datetime.date(2024, 6, 8)
+
+    def test_ciclo_offset_negativo(self, user):
+        """offset=-1 volta 1 ciclo."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='C5', brand='Visa', last_four_digits='5555',
+            card_type='credito', billing_close_day=9,
+        )
+        inicio, fim = get_cycle_period(card, offset=-1, reference_date=datetime.date(2024, 4, 15))
+        assert inicio == datetime.date(2024, 3, 9)
+        assert fim == datetime.date(2024, 4, 8)
+
+    def test_ciclo_close_day_31_em_fevereiro_bissexto(self, user):
+        """close_day=31, hoje=15/02/2024 → cap em 29 (bissexto)."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='C6', brand='Visa', last_four_digits='6666',
+            card_type='credito', billing_close_day=31,
+        )
+        inicio, fim = get_cycle_period(card, offset=0, reference_date=datetime.date(2024, 2, 15))
+        # Hoje (15) < close_day efetivo do mês (29 em fev bissexto).
+        # start = 31 de janeiro; end = (29 de fev) - 1 = 28 de fev.
+        assert inicio == datetime.date(2024, 1, 31)
+        assert fim == datetime.date(2024, 2, 28)
+
+    def test_ciclo_virada_de_ano(self, user):
+        """Hoje=05/01, close_day=9 → ciclo = (09/12/ano_anterior, 08/01)."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='C7', brand='Visa', last_four_digits='7777',
+            card_type='credito', billing_close_day=9,
+        )
+        inicio, fim = get_cycle_period(card, offset=0, reference_date=datetime.date(2024, 1, 5))
+        assert inicio == datetime.date(2023, 12, 9)
+        assert fim == datetime.date(2024, 1, 8)
+
+    def test_fallback_sem_close_day_offset_0(self, user):
+        """Card sem billing_close_day → mês calendário."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='Deb', brand='Visa', last_four_digits='8888',
+            card_type='debito',
+        )
+        inicio, fim = get_cycle_period(card, offset=0, reference_date=datetime.date(2024, 4, 15))
+        assert inicio == datetime.date(2024, 4, 1)
+        assert fim == datetime.date(2024, 4, 30)
+
+    def test_fallback_sem_close_day_offset_positivo(self, user):
+        """Card sem close_day + offset=+1 → mês seguinte inteiro."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='Deb2', brand='Visa', last_four_digits='9999',
+            card_type='debito',
+        )
+        inicio, fim = get_cycle_period(card, offset=1, reference_date=datetime.date(2024, 4, 15))
+        assert inicio == datetime.date(2024, 5, 1)
+        assert fim == datetime.date(2024, 5, 31)
+
+    def test_fallback_sem_close_day_offset_negativo(self, user):
+        """Card sem close_day + offset=-1 → mês anterior inteiro."""
+        import datetime
+        card = Card.objects.create(
+            user=user, name='Deb3', brand='Visa', last_four_digits='1010',
+            card_type='debito',
+        )
+        inicio, fim = get_cycle_period(card, offset=-1, reference_date=datetime.date(2024, 4, 15))
+        assert inicio == datetime.date(2024, 3, 1)
+        assert fim == datetime.date(2024, 3, 31)
+
+
+class TestBuildCycleContext:
+    """Helper que embala o período + metadados para a view/template."""
+
+    def test_retorna_labels_formatados_e_navegacao(self, user):
+        import datetime
+        card = Card.objects.create(
+            user=user, name='Nubank', brand='Mastercard', last_four_digits='1234',
+            card_type='credito', billing_close_day=9,
+        )
+        ctx = build_cycle_context(card, offset=0, reference_date=datetime.date(2024, 4, 15))
+        assert ctx['card_id'] == str(card.id)
+        assert ctx['card_name'] == 'Nubank'
+        assert ctx['offset'] == 0
+        assert ctx['prev_offset'] == -1
+        assert ctx['next_offset'] == 1
+        assert ctx['start'] == datetime.date(2024, 4, 9)
+        assert ctx['end'] == datetime.date(2024, 5, 8)
+        assert '09/04/2024' in ctx['label']
+        assert '08/05/2024' in ctx['label']
