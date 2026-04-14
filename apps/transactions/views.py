@@ -52,9 +52,17 @@ class TransactionListView(LoginRequiredMixin, View):
 
         transacoes = get_user_transactions(request.user, filtros)
 
+        Category = django_apps.get_model("categories", "Category")
+        Card = django_apps.get_model("cards", "Card")
+
+        categorias = Category.objects.filter(user=request.user, is_active=True)
+        cartoes = Card.objects.filter(user=request.user, is_active=True)
+
         contexto = {
             "transacoes": transacoes,
             "filtros": filtros,
+            "categorias": categorias,
+            "cartoes": cartoes,
         }
         return render(request, self.template_name, contexto)
 
