@@ -16,10 +16,10 @@ Este arquivo fornece orientação ao Claude Code (claude.ai/code) ao trabalhar c
 
 - **Commit por task:** ao finalizar cada task de uma spec, criar um commit dedicado com mensagem descritiva (ex: `feat(accounts): T1 — CustomUser model e manager`). Não acumular múltiplas tasks em um único commit. 
 
-# Obisidian
+# Obsidian
 
 Estou implementando o Obsidian junto aos meus projetos, siga as regras abaixo para controle total.
-Caso alguma pasta não tenha sido criada ainda, crie dentro do Obisidian.
+Caso alguma pasta não tenha sido criada ainda, crie dentro do Obsidian.
 
 Este projeto mantém documentação de design e specs no vault Obsidian em `Auri/`.
 Use o MCP do Obsidian [obisidian-mcp-tools] para:
@@ -27,19 +27,20 @@ Use o MCP do Obsidian [obisidian-mcp-tools] para:
 - Consultar decisões arquiteturais em `Auri/architecture/`
 - Sincronizar status de implementação em `Auri/modules/<modulo>/status.md`
 
-Ao concluir uma feature, atualize a nota correspondente no Obsidian com:
+### Ao concluir uma feature, atualize a nota correspondente no Obsidian com:
 - Data da implementação
 - Decisões tomadas que divergiram da spec
 - Testes adicionados
 
-Implementação de features:
+### Implementação de features:
 O Obsidian possui uma pasta para registros de features, `Auri/features`, nele contém notas com funcionalidades que precisam ser inseridas no sistema. Eu utilizo a divisão de feature por módulo, `Auri/features/<module>/feature-name.md`.
 - Leia as notas e identifique as funcionalidades.
 - Crie um plano de implementação seguindo o padrão de SDD com TDD.
 - Não execute o plano até que tenha o meu OK e revisão.
-- Em alterações diretas em templates, não faça a execução, registre o que deve ser alterado na pasta `Auri/features/frontend/<module>/feature-name.md`.
+- Em alterações diretas em templates, não faça a execução, registre o que deve ser alterado na pasta `Auri/frontend/<module>/feature-name.md`.
+- Após executado a feature, registrar flag no nome do arquivo.
 
-Tratamento de erros:
+### Tratamento de erros:
 O obisidian possui uma pasta para erros reportados, `Auri/errors` nele contem notas de erros utilizando a seguinte nomenclatura `erro-numero_do_erro-data_do_registro`.
 - Leia as notas e identifique os erros.
 - Planeje a solução com base nos erros identificados
