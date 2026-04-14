@@ -136,6 +136,51 @@ class TestCardDetailView:
         response = client_auth.get(f'/cards/{other_card.pk}/')
         assert response.status_code == 302
 
+    def test_contexto_inclui_resumo_com_filtro_mensal(self, client_auth, user, card):
+        """?month=YYYY-MM deve filtrar transações e popular o resumo do período."""
+        from datetime import date
+        from decimal import Decimal
+        from apps.categories.models import Category
+        from apps.transactions.models import Transaction
+
+        categoria = Category.objects.create(user=user, name='Geral')
+        Transaction.objects.create(
+            user=user, name='Recebido', amount=Decimal('300.00'), type='entrada',
+            category=categoria, card=card, date=date(2024, 2, 10),
+        )
+        Transaction.objects.create(
+            user=user, name='Compra', amount=Decimal('120.00'), type='saida',
+            category=categoria, card=card, date=date(2024, 2, 20),
+        )
+        # Fora do mês alvo — não deve contar.
+        Transaction.objects.create(
+            user=user, name='Fora', amount=Decimal('999.00'), type='saida',
+            category=categoria, card=card, date=date(2024, 3, 5),
+        )
+        response = client_auth.get(f'/cards/{card.pk}/?month=2024-02')
+        assert response.status_code == 200
+        resumo = response.context['resumo']
+        assert resumo['total_entradas'] == Decimal('300.00')
+        assert resumo['total_saidas'] == Decimal('120.00')
+        assert resumo['saldo_liquido'] == Decimal('180.00')
+        assert response.context['month_selected'] == '2024-02'
+
+    def test_sem_month_usa_mes_atual(self, client_auth, card):
+        """Sem ?month=, o contexto deve trazer billing_period do mês corrente."""
+        import datetime
+        response = client_auth.get(f'/cards/{card.pk}/')
+        assert response.status_code == 200
+        inicio, fim = response.context['billing_period']
+        hoje = datetime.date.today()
+        assert inicio.month == hoje.month
+        assert inicio.day == 1
+
+    def test_month_invalido_nao_quebra(self, client_auth, card):
+        """?month=invalido deve cair no fallback sem 500."""
+        response = client_auth.get(f'/cards/{card.pk}/?month=abc')
+        assert response.status_code == 200
+        assert 'resumo' in response.context
+
 
 class TestCardUpdateView:
     def test_get_retorna_200(self, client_auth, card):

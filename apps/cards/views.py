@@ -8,7 +8,14 @@ from django.shortcuts import render, redirect
 from django.views import View
 
 from .services import create_card, update_card, deactivate_card
-from .selectors import get_user_cards, get_card_by_id, get_available_limit, get_card_transactions
+from .selectors import (
+    get_available_limit,
+    get_card_by_id,
+    get_card_transactions,
+    get_card_transactions_summary,
+    get_month_period,
+    get_user_cards,
+)
 
 
 def _campo_opcional_inteiro(valor):
@@ -68,7 +75,8 @@ class CardCreateView(LoginRequiredMixin, View):
 
 
 class CardDetailView(LoginRequiredMixin, View):
-    """Exibe os detalhes de um cartão, limite disponível e transações."""
+    """Exibe os detalhes de um cartão, limite disponível, transações do mês
+    selecionado e resumo agregado (entradas, saídas e saldo líquido)."""
 
     def get(self, request, pk):
         try:
@@ -77,13 +85,22 @@ class CardDetailView(LoginRequiredMixin, View):
             messages.error(request, "Cartão não encontrado.")
             return redirect("cards:list")
 
+        month_str = request.GET.get("month", "")
+        billing_period = get_month_period(month_str)
+
         available_limit = get_available_limit(card)
-        transactions = get_card_transactions(pk, request.user)
+        transactions = get_card_transactions(pk, request.user, billing_period=billing_period)
+        resumo = get_card_transactions_summary(pk, request.user, billing_period=billing_period)
+
+        month_selected = month_str if month_str else billing_period[0].strftime("%Y-%m")
 
         return render(request, "cards/card_detail.html", {
             "card": card,
             "available_limit": available_limit,
             "transactions": transactions,
+            "resumo": resumo,
+            "month_selected": month_selected,
+            "billing_period": billing_period,
         })
 
 
