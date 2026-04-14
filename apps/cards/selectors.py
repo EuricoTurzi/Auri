@@ -125,6 +125,92 @@ def get_available_limit(card):
         return card.credit_limit
 
 
+def get_month_period(month_str):
+    """
+    Converte uma string no formato 'YYYY-MM' em tupla (data_inicio, data_fim)
+    correspondente ao primeiro e último dia do mês.
+
+    Em caso de entrada vazia, None ou inválida, retorna o mês corrente como
+    fallback seguro (para que views possam passar ?month= diretamente sem
+    validação prévia).
+    """
+    hoje = datetime.date.today()
+
+    def _mes_corrente():
+        ultimo_dia = calendar.monthrange(hoje.year, hoje.month)[1]
+        return (
+            hoje.replace(day=1),
+            hoje.replace(day=ultimo_dia),
+        )
+
+    if not month_str:
+        return _mes_corrente()
+
+    try:
+        ano_str, mes_str = month_str.split("-", 1)
+        ano = int(ano_str)
+        mes = int(mes_str)
+        if not (1 <= mes <= 12):
+            return _mes_corrente()
+    except (ValueError, AttributeError):
+        return _mes_corrente()
+
+    ultimo_dia = calendar.monthrange(ano, mes)[1]
+    return (
+        datetime.date(ano, mes, 1),
+        datetime.date(ano, mes, ultimo_dia),
+    )
+
+
+def get_card_transactions_summary(card_id, user, billing_period):
+    """
+    Retorna o resumo agregado (entradas, saídas, saldo líquido) das
+    transações do cartão no período informado.
+
+    Valida ownership do cartão antes da consulta — levanta PermissionError
+    caso o cartão não pertença ao usuário.
+
+    Parâmetros:
+        card_id: UUID do cartão.
+        user: instância do usuário proprietário.
+        billing_period: tupla (date_start, date_end) do período.
+
+    Retorna dict:
+        {"total_entradas": Decimal, "total_saidas": Decimal, "saldo_liquido": Decimal}
+    """
+    # Valida ownership — levanta PermissionError se não encontrado.
+    card = get_card_by_id(card_id, user)
+
+    try:
+        Transaction = django_apps.get_model("transactions", "Transaction")
+    except LookupError:
+        zero = Decimal("0")
+        return {"total_entradas": zero, "total_saidas": zero, "saldo_liquido": zero}
+
+    date_start, date_end = billing_period
+    base_qs = Transaction.objects.filter(
+        card=card,
+        is_active=True,
+        date__gte=date_start,
+        date__lte=date_end,
+    )
+
+    total_entradas = (
+        base_qs.filter(type="entrada").aggregate(total=Sum("amount"))["total"]
+        or Decimal("0")
+    )
+    total_saidas = (
+        base_qs.filter(type="saida").aggregate(total=Sum("amount"))["total"]
+        or Decimal("0")
+    )
+
+    return {
+        "total_entradas": total_entradas,
+        "total_saidas": total_saidas,
+        "saldo_liquido": total_entradas - total_saidas,
+    }
+
+
 def get_card_transactions(card_id, user, billing_period=None):
     """
     Retorna transações vinculadas ao cartão do usuário.

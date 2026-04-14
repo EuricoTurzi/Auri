@@ -4,7 +4,13 @@ from django.core.exceptions import ValidationError
 from apps.accounts.models import CustomUser
 from apps.cards.models import Card
 from apps.cards.services import create_card, deactivate_card, update_card
-from apps.cards.selectors import get_available_limit, get_card_by_id, get_user_cards
+from apps.cards.selectors import (
+    get_available_limit,
+    get_card_by_id,
+    get_card_transactions_summary,
+    get_month_period,
+    get_user_cards,
+)
 
 
 @pytest.fixture
@@ -226,3 +232,125 @@ class TestSelectors:
         resultado = get_available_limit(cartao)
         # Limite 5000 - apenas a ativa (100) = 4900
         assert resultado == Decimal('4900.00')
+
+
+class TestGetMonthPeriod:
+    """Helper que converte 'YYYY-MM' em tupla (inicio, fim) do mês."""
+
+    def test_parse_mes_retorna_primeiro_e_ultimo_dia(self):
+        import datetime
+        inicio, fim = get_month_period('2026-02')
+        assert inicio == datetime.date(2026, 2, 1)
+        assert fim == datetime.date(2026, 2, 28)
+
+    def test_fevereiro_bissexto(self):
+        import datetime
+        inicio, fim = get_month_period('2024-02')
+        assert inicio == datetime.date(2024, 2, 1)
+        assert fim == datetime.date(2024, 2, 29)
+
+    def test_input_vazio_usa_mes_atual(self):
+        import datetime
+        hoje = datetime.date.today()
+        inicio, fim = get_month_period('')
+        assert inicio.year == hoje.year
+        assert inicio.month == hoje.month
+        assert inicio.day == 1
+
+    def test_input_invalido_usa_mes_atual(self):
+        import datetime
+        hoje = datetime.date.today()
+        inicio, fim = get_month_period('abc-xx')
+        assert inicio.year == hoje.year
+        assert inicio.month == hoje.month
+
+    def test_input_none_usa_mes_atual(self):
+        import datetime
+        hoje = datetime.date.today()
+        inicio, fim = get_month_period(None)
+        assert inicio.month == hoje.month
+
+
+class TestGetCardTransactionsSummary:
+    """Agregação de entradas, saídas e saldo no período filtrado do cartão."""
+
+    def test_resumo_restrito_ao_periodo_e_cartao(self, user, card):
+        from decimal import Decimal
+        import datetime
+        from apps.categories.models import Category
+        from apps.transactions.models import Transaction
+
+        categoria = Category.objects.create(user=user, name='Geral')
+
+        # Dentro do período alvo (fev/2024) e ligadas ao cartão
+        Transaction.objects.create(
+            user=user, name='Pagamento', amount=Decimal('200.00'), type='entrada',
+            category=categoria, card=card, date=datetime.date(2024, 2, 10),
+        )
+        Transaction.objects.create(
+            user=user, name='Compra', amount=Decimal('80.00'), type='saida',
+            category=categoria, card=card, date=datetime.date(2024, 2, 15),
+        )
+        # Fora do período
+        Transaction.objects.create(
+            user=user, name='Fora', amount=Decimal('999.00'), type='saida',
+            category=categoria, card=card, date=datetime.date(2024, 3, 1),
+        )
+        # Em outro cartão
+        outro = Card.objects.create(
+            user=user, name='Outro', brand='Visa', last_four_digits='0000',
+            card_type='credito', credit_limit=Decimal('1000.00'),
+        )
+        Transaction.objects.create(
+            user=user, name='Noutro cartão', amount=Decimal('500.00'), type='saida',
+            category=categoria, card=outro, date=datetime.date(2024, 2, 20),
+        )
+
+        resumo = get_card_transactions_summary(
+            card.id, user,
+            billing_period=(datetime.date(2024, 2, 1), datetime.date(2024, 2, 29)),
+        )
+        assert resumo['total_entradas'] == Decimal('200.00')
+        assert resumo['total_saidas'] == Decimal('80.00')
+        assert resumo['saldo_liquido'] == Decimal('120.00')
+
+    def test_resumo_ignora_soft_deleted(self, user, card):
+        from decimal import Decimal
+        import datetime
+        from apps.categories.models import Category
+        from apps.transactions.models import Transaction
+
+        categoria = Category.objects.create(user=user, name='Geral')
+        Transaction.objects.create(
+            user=user, name='Ativa', amount=Decimal('50.00'), type='saida',
+            category=categoria, card=card, date=datetime.date(2024, 2, 5),
+        )
+        Transaction.objects.create(
+            user=user, name='Inativa', amount=Decimal('300.00'), type='saida',
+            category=categoria, card=card, date=datetime.date(2024, 2, 5),
+            is_active=False,
+        )
+        resumo = get_card_transactions_summary(
+            card.id, user,
+            billing_period=(datetime.date(2024, 2, 1), datetime.date(2024, 2, 29)),
+        )
+        assert resumo['total_saidas'] == Decimal('50.00')
+
+    def test_resumo_rejeita_outro_usuario(self, card, other_user):
+        import datetime
+        with pytest.raises(PermissionError):
+            get_card_transactions_summary(
+                card.id, other_user,
+                billing_period=(datetime.date(2024, 2, 1), datetime.date(2024, 2, 29)),
+            )
+
+    def test_resumo_vazio_retorna_zero(self, user, card):
+        from decimal import Decimal
+        import datetime
+        resumo = get_card_transactions_summary(
+            card.id, user,
+            billing_period=(datetime.date(2030, 1, 1), datetime.date(2030, 1, 31)),
+        )
+        assert resumo['total_entradas'] == Decimal('0')
+        assert resumo['total_saidas'] == Decimal('0')
+        assert resumo['saldo_liquido'] == Decimal('0')
