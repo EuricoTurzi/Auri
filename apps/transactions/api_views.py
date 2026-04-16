@@ -3,9 +3,10 @@ API Views DRF para o app transactions — endpoints REST com autenticação JWT.
 """
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import serializers as drf_serializers, status
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
 
 from .serializers import (
     TransactionSerializer,
@@ -35,6 +36,19 @@ class TransactionListCreateAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Listar transações',
+        parameters=[
+            OpenApiParameter(name='type', type=str, required=False, description='Filtro por tipo (entrada/saida)'),
+            OpenApiParameter(name='category_id', type=str, required=False, description='Filtro por UUID da categoria'),
+            OpenApiParameter(name='card_id', type=str, required=False, description='Filtro por UUID do cartão'),
+            OpenApiParameter(name='date_start', type=str, required=False, description='Data inicial (YYYY-MM-DD)'),
+            OpenApiParameter(name='date_end', type=str, required=False, description='Data final (YYYY-MM-DD)'),
+            OpenApiParameter(name='status', type=str, required=False, description='Filtro por status (pendente/pago)'),
+        ],
+        responses={200: TransactionSerializer(many=True)},
+    )
     def get(self, request):
         """Retorna lista de transações filtradas por parâmetros de query."""
         filter_serializer = TransactionFilterSerializer(data=request.query_params)
@@ -44,6 +58,12 @@ class TransactionListCreateAPIView(APIView):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Criar transação',
+        request=TransactionCreateSerializer,
+        responses={201: TransactionSerializer},
+    )
     def post(self, request):
         """Cria transação simples com dados validados e retorna 201 com representação completa."""
         serializer = TransactionCreateSerializer(data=request.data)
@@ -65,6 +85,11 @@ class TransactionDetailAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Detalhe da transação',
+        responses={200: TransactionSerializer},
+    )
     def get(self, request, pk):
         """Retorna dados completos de uma transação específica do usuário."""
         try:
@@ -73,6 +98,12 @@ class TransactionDetailAPIView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
         return Response(TransactionSerializer(transaction).data)
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Atualizar transação',
+        request=TransactionCreateSerializer,
+        responses={200: TransactionSerializer},
+    )
     def put(self, request, pk):
         """Atualiza campos da transação e retorna representação atualizada."""
         serializer = TransactionCreateSerializer(data=request.data)
@@ -86,6 +117,11 @@ class TransactionDetailAPIView(APIView):
         except PermissionError as e:
             return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Remover transação (soft-delete)',
+        responses={204: None},
+    )
     def delete(self, request, pk):
         """Realiza soft-delete da transação; retorna 204 sem corpo."""
         try:
@@ -102,6 +138,12 @@ class RecurringTransactionCreateAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Criar transação recorrente',
+        request=RecurringTransactionCreateSerializer,
+        responses={201: TransactionSerializer},
+    )
     def post(self, request):
         """Cria transação recorrente extraindo frequency do payload e retorna 201."""
         serializer = RecurringTransactionCreateSerializer(data=request.data)
@@ -124,6 +166,11 @@ class RecurringTransactionDeleteAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Remover transação recorrente',
+        responses={204: None},
+    )
     def delete(self, request, pk):
         """Remove transação recorrente e todas as suas ocorrências futuras; retorna 204."""
         try:
@@ -142,6 +189,12 @@ class InstallmentTransactionCreateAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Criar transação parcelada',
+        request=InstallmentTransactionCreateSerializer,
+        responses={201: TransactionSerializer},
+    )
     def post(self, request):
         """Cria transação parcelada extraindo total_installments do payload e retorna 201."""
         serializer = InstallmentTransactionCreateSerializer(data=request.data)
@@ -164,6 +217,11 @@ class InstallmentListAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Listar parcelas da transação',
+        responses={200: InstallmentSerializer(many=True)},
+    )
     def get(self, request, pk):
         """Retorna lista de parcelas da transação especificada."""
         try:
@@ -181,6 +239,15 @@ class TransactionStatusUpdateAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Transactions'],
+        summary='Atualizar status da transação',
+        request=inline_serializer(
+            name='StatusUpdateRequest',
+            fields={'status': drf_serializers.CharField(help_text='Novo status: pendente ou pago')},
+        ),
+        responses={200: TransactionSerializer},
+    )
     def patch(self, request, pk):
         """Atualiza o status da transação (pendente/pago) e retorna representação atualizada."""
         new_status = request.data.get("status")

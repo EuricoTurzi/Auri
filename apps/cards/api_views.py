@@ -6,10 +6,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from .serializers import CardSerializer, CardCreateUpdateSerializer
 from .services import create_card, update_card, deactivate_card
 from .selectors import get_user_cards, get_card_by_id, get_card_transactions
+from apps.transactions.serializers import TransactionSerializer
 
 
 class CardListCreateAPIView(APIView):
@@ -20,12 +22,23 @@ class CardListCreateAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Cards'],
+        summary='Listar cartões',
+        responses={200: CardSerializer(many=True)},
+    )
     def get(self, request):
         """Retorna lista de cartões ativos com available_limit calculado."""
         cards = get_user_cards(request.user)
         serializer = CardSerializer(cards, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=['Cards'],
+        summary='Criar cartão',
+        request=CardCreateUpdateSerializer,
+        responses={201: CardSerializer},
+    )
     def post(self, request):
         """Cria cartão com dados validados e retorna 201 com representação completa."""
         serializer = CardCreateUpdateSerializer(data=request.data)
@@ -47,6 +60,11 @@ class CardDetailAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Cards'],
+        summary='Detalhe do cartão',
+        responses={200: CardSerializer},
+    )
     def get(self, request, pk):
         """Retorna dados completos de um cartão específico do usuário."""
         try:
@@ -55,6 +73,12 @@ class CardDetailAPIView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
         return Response(CardSerializer(card).data)
 
+    @extend_schema(
+        tags=['Cards'],
+        summary='Atualizar cartão',
+        request=CardCreateUpdateSerializer,
+        responses={200: CardSerializer},
+    )
     def put(self, request, pk):
         """Atualiza campos do cartão e retorna representação atualizada."""
         serializer = CardCreateUpdateSerializer(data=request.data)
@@ -66,6 +90,11 @@ class CardDetailAPIView(APIView):
         except (ValidationError, PermissionError) as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        tags=['Cards'],
+        summary='Remover cartão (soft-delete)',
+        responses={204: None},
+    )
     def delete(self, request, pk):
         """Realiza soft-delete do cartão; retorna 204 sem corpo."""
         try:
@@ -86,6 +115,20 @@ class CardTransactionsAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Cards'],
+        summary='Listar transações do cartão',
+        parameters=[
+            OpenApiParameter(
+                name='billing_period',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Período de faturamento no formato YYYY-MM-DD,YYYY-MM-DD',
+                required=False,
+            ),
+        ],
+        responses={200: TransactionSerializer(many=True)},
+    )
     def get(self, request, pk):
         """
         Retorna transações vinculadas ao cartão.

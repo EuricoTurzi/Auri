@@ -155,6 +155,26 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+# drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Auri API',
+    'DESCRIPTION': 'API REST do sistema Auri — controle de finanças pessoais.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'TAGS': [
+        {'name': 'Accounts', 'description': 'Autenticação, registro e perfil do usuário'},
+        {'name': 'Categories', 'description': 'CRUD de categorias de transações'},
+        {'name': 'Cards', 'description': 'CRUD de cartões e transações vinculadas'},
+        {'name': 'Transactions', 'description': 'CRUD de transações, recorrências e parcelamentos'},
+        {'name': 'Assistant', 'description': 'Assistente IA — registro por texto/áudio'},
+        {'name': 'Reports', 'description': 'Dashboard, exportações e relatórios agendados'},
+    ],
+    'COMPONENT_SPLIT_REQUEST': True,
+    'ENUM_NAME_OVERRIDES': {
+        'TransactionStatusEnum': 'apps.transactions.models.Transaction.STATUS_CHOICES',
+    },
+}
+
 # SimpleJWT
 from datetime import timedelta
 

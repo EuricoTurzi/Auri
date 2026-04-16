@@ -4,9 +4,10 @@ API Views DRF para o app assistant — endpoints REST com autenticação JWT.
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import serializers as drf_serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from .serializers import (
     TextInputSerializer,
@@ -36,6 +37,22 @@ class AssistantTextAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Assistant'],
+        summary='Interpretar texto em linguagem natural',
+        request=TextInputSerializer,
+        responses={
+            200: inline_serializer(
+                name='AssistantTextResponse',
+                fields={
+                    'interaction_id': drf_serializers.UUIDField(),
+                    'preview': drf_serializers.DictField(required=False),
+                    'question': drf_serializers.CharField(required=False),
+                    'missing_fields': drf_serializers.ListField(child=drf_serializers.CharField(), required=False),
+                },
+            ),
+        },
+    )
     def post(self, request):
         """Interpreta texto, cria interação e retorna preview ou pergunta de clarificação."""
         serializer = TextInputSerializer(data=request.data)
@@ -99,6 +116,23 @@ class AssistantAudioAPIView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
 
+    @extend_schema(
+        tags=['Assistant'],
+        summary='Interpretar áudio via transcrição + LLM',
+        request=AudioInputSerializer,
+        responses={
+            200: inline_serializer(
+                name='AssistantAudioResponse',
+                fields={
+                    'interaction_id': drf_serializers.UUIDField(),
+                    'transcription': drf_serializers.CharField(),
+                    'preview': drf_serializers.DictField(required=False),
+                    'question': drf_serializers.CharField(required=False),
+                    'missing_fields': drf_serializers.ListField(child=drf_serializers.CharField(), required=False),
+                },
+            ),
+        },
+    )
     def post(self, request):
         """Transcreve áudio, interpreta texto resultante, cria interação e retorna preview."""
         serializer = AudioInputSerializer(data=request.data)
@@ -165,6 +199,20 @@ class AssistantConfirmAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Assistant'],
+        summary='Confirmar interação e criar transação',
+        request=ConfirmSerializer,
+        responses={
+            200: inline_serializer(
+                name='AssistantConfirmResponse',
+                fields={
+                    'status': drf_serializers.CharField(),
+                    'transaction_id': drf_serializers.UUIDField(),
+                },
+            ),
+        },
+    )
     def post(self, request, pk):
         """Confirma interação e cria transação; retorna status e transaction_id."""
         serializer = ConfirmSerializer(data=request.data)
@@ -200,6 +248,17 @@ class AssistantCancelAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Assistant'],
+        summary='Cancelar interação pendente',
+        request=None,
+        responses={
+            200: inline_serializer(
+                name='AssistantCancelResponse',
+                fields={'status': drf_serializers.CharField()},
+            ),
+        },
+    )
     def post(self, request, pk):
         """Cancela interação e retorna status cancelado."""
         try:
@@ -210,6 +269,7 @@ class AssistantCancelAPIView(APIView):
         return Response({"status": "cancelled"}, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=['Assistant'])
 class AssistantHistoryAPIView(ListAPIView):
     """
     GET /api/v1/assistant/history/

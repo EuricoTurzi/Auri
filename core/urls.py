@@ -5,6 +5,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render, redirect
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 
 def landing_page(request):
@@ -35,6 +40,11 @@ urlpatterns = [
     path('api/v1/transactions/', include('apps.transactions.api_urls')),
     path('api/v1/assistant/', include('apps.assistant.api_urls')),
     path('api/v1/reports/', include('apps.reports.api_urls')),
+
+    # API Docs
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     # OAuth (allauth)
     path('accounts/', include('allauth.urls')),

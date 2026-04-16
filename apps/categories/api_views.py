@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from apps.categories.models import Category
 from apps.categories.selectors import get_category_by_id, get_user_categories
@@ -14,11 +15,22 @@ class CategoryListCreateAPIView(APIView):
     """GET/POST /api/v1/categories/ — lista e criação de categorias."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Categories'],
+        summary='Listar categorias',
+        responses={200: CategorySerializer(many=True)},
+    )
     def get(self, request):
         categories = get_user_categories(request.user, active_only=True)
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=['Categories'],
+        summary='Criar categoria',
+        request=CategoryCreateUpdateSerializer,
+        responses={201: CategorySerializer},
+    )
     def post(self, request):
         serializer = CategoryCreateUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -42,6 +54,11 @@ class CategoryDetailAPIView(APIView):
     """GET/PUT/DELETE /api/v1/categories/<pk>/ — detalhe, atualização e soft-delete."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Categories'],
+        summary='Detalhe da categoria',
+        responses={200: CategorySerializer},
+    )
     def get(self, request, pk):
         try:
             category = get_category_by_id(pk, request.user)
@@ -49,6 +66,12 @@ class CategoryDetailAPIView(APIView):
             return Response({'detail': 'Não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
         return Response(CategorySerializer(category).data)
 
+    @extend_schema(
+        tags=['Categories'],
+        summary='Atualizar categoria',
+        request=CategoryCreateUpdateSerializer,
+        responses={200: CategorySerializer},
+    )
     def put(self, request, pk):
         serializer = CategoryCreateUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -70,6 +93,11 @@ class CategoryDetailAPIView(APIView):
 
         return Response(CategorySerializer(category).data)
 
+    @extend_schema(
+        tags=['Categories'],
+        summary='Remover categoria (soft-delete)',
+        responses={204: None},
+    )
     def delete(self, request, pk):
         try:
             deactivate_category(pk, request.user)

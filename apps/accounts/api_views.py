@@ -1,9 +1,10 @@
 from django.contrib.auth import authenticate
-from rest_framework import status
+from rest_framework import serializers as drf_serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from drf_spectacular.utils import extend_schema
 
 from apps.accounts.serializers import (
     ChangePasswordSerializer,
@@ -14,10 +15,22 @@ from apps.accounts.serializers import (
 from apps.accounts.services import change_first_access_password, register_user
 
 
+class _LoginResponseSerializer(drf_serializers.Serializer):
+    access = drf_serializers.CharField()
+    refresh = drf_serializers.CharField()
+    user = UserSerializer()
+
+
 class RegisterAPIView(APIView):
     """POST /api/v1/accounts/register/ — registro de novo usuário."""
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        tags=['Accounts'],
+        summary='Registrar novo usuário',
+        request=RegisterSerializer,
+        responses={201: UserSerializer},
+    )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -35,6 +48,12 @@ class LoginAPIView(APIView):
     """POST /api/v1/accounts/login/ — retorna JWT tokens."""
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        tags=['Accounts'],
+        summary='Login — obter tokens JWT',
+        request=LoginSerializer,
+        responses={200: _LoginResponseSerializer, 401: None},
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -69,6 +88,12 @@ class ChangePasswordAPIView(APIView):
     """POST /api/v1/accounts/change-password/ — troca senha primeiro acesso."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Accounts'],
+        summary='Trocar senha (primeiro acesso)',
+        request=ChangePasswordSerializer,
+        responses={200: UserSerializer},
+    )
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -90,5 +115,10 @@ class MeAPIView(APIView):
     """GET /api/v1/accounts/me/ — dados do usuário autenticado."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Accounts'],
+        summary='Dados do usuário autenticado',
+        responses={200: UserSerializer},
+    )
     def get(self, request):
         return Response(UserSerializer(request.user).data)

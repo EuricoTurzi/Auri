@@ -1,7 +1,10 @@
 """
 Serializers DRF para o app cards.
 """
+from decimal import Decimal
+
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 from .models import Card
 from .selectors import get_available_limit
@@ -28,7 +31,8 @@ class CardSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get_available_limit(self, obj):
+    @extend_schema_field(serializers.DecimalField(max_digits=12, decimal_places=2, allow_null=True))
+    def get_available_limit(self, obj) -> Decimal | None:
         """Retorna o limite disponível calculado via selector."""
         return get_available_limit(obj)
 

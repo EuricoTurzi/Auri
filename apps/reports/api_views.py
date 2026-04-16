@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from .serializers import (
     DashboardSerializer,
@@ -28,6 +29,18 @@ class DashboardAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Reports'],
+        summary='Dados do dashboard',
+        parameters=[
+            OpenApiParameter(name='period_start', type=str, required=False, description='Data inicial (YYYY-MM-DD)'),
+            OpenApiParameter(name='period_end', type=str, required=False, description='Data final (YYYY-MM-DD)'),
+            OpenApiParameter(name='type', type=str, required=False, description='Filtro por tipo (entrada/saida)'),
+            OpenApiParameter(name='category_ids', type={'type': 'array', 'items': {'type': 'string', 'format': 'uuid'}}, required=False, description='UUIDs de categorias'),
+            OpenApiParameter(name='card_ids', type={'type': 'array', 'items': {'type': 'string', 'format': 'uuid'}}, required=False, description='UUIDs de cartões'),
+        ],
+        responses={200: DashboardSerializer},
+    )
     def get(self, request):
         filter_serializer = DashboardFilterSerializer(data=request.query_params)
         if not filter_serializer.is_valid():
@@ -45,6 +58,17 @@ class ExportAPIView(APIView):
     permission_classes = [IsAuthenticated]
     FORMATOS_VALIDOS = {"csv", "xlsx", "pdf"}
 
+    @extend_schema(
+        tags=['Reports'],
+        summary='Exportar relatório (csv, xlsx ou pdf)',
+        parameters=[
+            OpenApiParameter(name='export_format', type=str, location=OpenApiParameter.PATH, description='Formato: csv, xlsx ou pdf'),
+            OpenApiParameter(name='period_start', type=str, required=False, description='Data inicial (YYYY-MM-DD)'),
+            OpenApiParameter(name='period_end', type=str, required=False, description='Data final (YYYY-MM-DD)'),
+            OpenApiParameter(name='type', type=str, required=False, description='Filtro por tipo (entrada/saida)'),
+        ],
+        responses={200: OpenApiTypes.BINARY},
+    )
     def get(self, request, export_format):
         if export_format not in self.FORMATOS_VALIDOS:
             return Response(
@@ -74,11 +98,22 @@ class ScheduledReportListCreateAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=['Reports'],
+        summary='Listar relatórios agendados',
+        responses={200: ScheduledReportSerializer(many=True)},
+    )
     def get(self, request):
         reports = get_user_scheduled_reports(request.user)
         serializer = ScheduledReportSerializer(reports, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=['Reports'],
+        summary='Criar relatório agendado',
+        request=ScheduledReportCreateUpdateSerializer,
+        responses={201: ScheduledReportSerializer},
+    )
     def post(self, request):
         serializer = ScheduledReportCreateUpdateSerializer(data=request.data)
         if not serializer.is_valid():
@@ -113,6 +148,11 @@ class ScheduledReportDetailAPIView(APIView):
             return None
         return report
 
+    @extend_schema(
+        tags=['Reports'],
+        summary='Detalhe do relatório agendado',
+        responses={200: ScheduledReportSerializer},
+    )
     def get(self, request, pk):
         report = self._get_report(pk, request.user)
         if not report:
@@ -122,6 +162,12 @@ class ScheduledReportDetailAPIView(APIView):
             )
         return Response(ScheduledReportSerializer(report).data)
 
+    @extend_schema(
+        tags=['Reports'],
+        summary='Atualizar relatório agendado',
+        request=ScheduledReportCreateUpdateSerializer,
+        responses={200: ScheduledReportSerializer},
+    )
     def put(self, request, pk):
         serializer = ScheduledReportCreateUpdateSerializer(data=request.data)
         if not serializer.is_valid():
@@ -133,6 +179,11 @@ class ScheduledReportDetailAPIView(APIView):
         except PermissionError as e:
             return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
+    @extend_schema(
+        tags=['Reports'],
+        summary='Remover relatório agendado (soft-delete)',
+        responses={204: None},
+    )
     def delete(self, request, pk):
         try:
             deactivate_scheduled_report(pk, request.user)
