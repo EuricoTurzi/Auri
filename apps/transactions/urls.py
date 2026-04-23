@@ -10,4 +10,9 @@ urlpatterns = [
     path("transactions/<uuid:pk>/", views.TransactionDetailView.as_view(), name="detail"),
     path("transactions/<uuid:pk>/edit/", views.TransactionUpdateView.as_view(), name="update"),
     path("transactions/<uuid:pk>/delete/", views.TransactionDeleteView.as_view(), name="delete"),
+    path(
+        "transactions/<uuid:pk>/toggle-status/",
+        views.TransactionToggleStatusView.as_view(),
+        name="toggle_status",
+    ),
 ]

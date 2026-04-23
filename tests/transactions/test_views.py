@@ -413,3 +413,95 @@ class TestTransactionUpdateView:
         assert response.status_code == 302
         transaction.refresh_from_db()
         assert transaction.name == 'Nome Atualizado'
+
+
+# ---------------------------------------------------------------------------
+# TestTransactionToggleStatusView
+# ---------------------------------------------------------------------------
+
+class TestTransactionToggleStatusView:
+    """Toggle bidirecional pendente ↔ pago direto da lista (POST + redirect)."""
+
+    def test_exige_autenticacao(self, db, transaction):
+        """Anônimo recebe 302 para login e status permanece inalterado."""
+        client = Client()
+        response = client.post(f'/transactions/{transaction.pk}/toggle-status/')
+        assert response.status_code == 302
+        assert '/accounts/login' in response.url or 'login' in response.url
+        transaction.refresh_from_db()
+        assert transaction.status == 'pendente'
+
+    def test_toggle_pendente_para_pago(self, client_auth, transaction):
+        """POST em transação pendente vira pago + redirect."""
+        assert transaction.status == 'pendente'
+        response = client_auth.post(f'/transactions/{transaction.pk}/toggle-status/')
+        assert response.status_code == 302
+        transaction.refresh_from_db()
+        assert transaction.status == 'pago'
+
+    def test_toggle_pago_para_pendente(self, client_auth, user, category):
+        """POST em transação paga vira pendente + redirect."""
+        tx = Transaction.objects.create(
+            user=user, name='Luz', amount=Decimal('200.00'), type='saida',
+            status='pago', category=category, date=date(2024, 1, 10),
+        )
+        response = client_auth.post(f'/transactions/{tx.pk}/toggle-status/')
+        assert response.status_code == 302
+        tx.refresh_from_db()
+        assert tx.status == 'pendente'
+
+    def test_preserva_filtros_via_referer(self, client_auth, transaction):
+        """Redirect volta ao referer (lista com filtros) quando do mesmo host."""
+        referer = '/transactions/?status=pendente&type=saida'
+        response = client_auth.post(
+            f'/transactions/{transaction.pk}/toggle-status/',
+            HTTP_REFERER=f'http://testserver{referer}',
+        )
+        assert response.status_code == 302
+        assert response.url == referer
+
+    def test_referer_externo_cai_para_list(self, client_auth, transaction):
+        """Referer de host estranho é descartado (anti open-redirect)."""
+        response = client_auth.post(
+            f'/transactions/{transaction.pk}/toggle-status/',
+            HTTP_REFERER='https://evil.com/roubar',
+        )
+        assert response.status_code == 302
+        assert response.url == '/transactions/'
+
+    def test_sem_referer_cai_para_list(self, client_auth, transaction):
+        """Sem HTTP_REFERER, redireciona para a lista."""
+        response = client_auth.post(f'/transactions/{transaction.pk}/toggle-status/')
+        assert response.status_code == 302
+        assert response.url == '/transactions/'
+
+    def test_nega_transacao_de_outro_usuario(
+        self, db, other_user, transaction,
+    ):
+        """Usuário logado não altera status de transação de outro usuário."""
+        client = Client()
+        client.login(username='other@test.com', password='pass12345')
+        response = client.post(f'/transactions/{transaction.pk}/toggle-status/')
+        # Redireciona (silenciosamente), mas status NÃO muda.
+        assert response.status_code == 302
+        transaction.refresh_from_db()
+        assert transaction.status == 'pendente'
+
+    def test_transacao_inexistente_redireciona_sem_crash(self, client_auth):
+        """UUID inexistente resolve para redirect, sem 500."""
+        import uuid
+        response = client_auth.post(f'/transactions/{uuid.uuid4()}/toggle-status/')
+        assert response.status_code == 302
+
+    def test_get_retorna_405(self, client_auth, transaction):
+        """Rota só aceita POST — GET retorna 405."""
+        response = client_auth.get(f'/transactions/{transaction.pk}/toggle-status/')
+        assert response.status_code == 405
+
+    def test_updated_at_atualiza_no_toggle(self, client_auth, transaction):
+        """Auditoria: updated_at deve refletir a mudança."""
+        original_updated_at = transaction.updated_at
+        response = client_auth.post(f'/transactions/{transaction.pk}/toggle-status/')
+        assert response.status_code == 302
+        transaction.refresh_from_db()
+        assert transaction.updated_at > original_updated_at

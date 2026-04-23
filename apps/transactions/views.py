@@ -372,3 +372,51 @@ class TransactionDeleteView(LoginRequiredMixin, View):
             messages.error(request, str(exc))
 
         return redirect("transactions:list")
+
+
+def _safe_referer(request, fallback_url="/transactions/"):
+    """Retorna o HTTP_REFERER somente se for do mesmo host (anti open-redirect)."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    referer = request.META.get("HTTP_REFERER", "")
+    if referer and url_has_allowed_host_and_scheme(
+        url=referer,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        # Preserva apenas o path+query (descarta scheme+host para evitar redirect absoluto).
+        from urllib.parse import urlparse
+
+        parsed = urlparse(referer)
+        destino = parsed.path
+        if parsed.query:
+            destino = f"{destino}?{parsed.query}"
+        return destino
+    return fallback_url
+
+
+class TransactionToggleStatusView(LoginRequiredMixin, View):
+    """Alterna o status de pagamento (pendente ↔ pago) de uma transação.
+
+    POST-only. Redireciona para o referer quando seguro; senão, para a lista.
+    """
+
+    http_method_names = ["post"]
+
+    def post(self, request, pk):
+        from django.contrib import messages
+
+        try:
+            transacao = get_transaction_by_id(pk, request.user)
+        except PermissionError as exc:
+            messages.error(request, str(exc))
+            return redirect(_safe_referer(request))
+
+        novo_status = "pago" if transacao.status == "pendente" else "pendente"
+
+        try:
+            update_transaction(pk, request.user, status=novo_status)
+        except (ValidationError, PermissionError) as exc:
+            messages.error(request, str(exc))
+
+        return redirect(_safe_referer(request))
