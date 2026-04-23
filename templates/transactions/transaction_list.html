@@ -312,12 +312,21 @@
                   {% else %}bg-red-500/10 text-red-400 border border-red-500/20{% endif %}">
                   {{ tx.get_type_display }}
                 </span>
-                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-[0.15em] flex items-center gap-1
-                  {% if tx.status == 'pago' %}bg-emerald-500/5 text-emerald-400/80 border border-emerald-500/10
-                  {% else %}bg-gold-500/10 text-gold-400 border border-gold-500/30{% endif %}">
-                  {% if tx.status == 'pendente' %}<span class="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse"></span>{% endif %}
-                  {{ tx.get_status_display }}
-                </span>
+                <form method="post" action="{% url 'transactions:toggle_status' tx.pk %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit"
+                    title="{% if tx.status == 'pago' %}Marcar como pendente{% else %}Marcar como pago{% endif %}"
+                    class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-[0.15em] flex items-center gap-1 cursor-pointer transition-all duration-200 active:scale-95
+                    {% if tx.status == 'pago' %}bg-emerald-500/5 text-emerald-400/80 border border-emerald-500/10 hover:bg-emerald-500/15 hover:text-emerald-300 hover:border-emerald-500/30
+                    {% else %}bg-gold-500/10 text-gold-400 border border-gold-500/30 hover:bg-gold-500/20 hover:border-gold-500/50{% endif %}">
+                    {% if tx.status == 'pago' %}
+                      <i class="ph-fill ph-check-circle text-[11px]"></i>
+                    {% else %}
+                      <i class="ph-bold ph-clock-countdown text-[11px] animate-pulse"></i>
+                    {% endif %}
+                    {{ tx.get_status_display }}
+                  </button>
+                </form>
               </div>
             </div>
             
